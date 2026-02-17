@@ -44,6 +44,7 @@ export function postModel(db?: Knex) {
 
     async create(post: Partial<Post>): Promise<Post> {
       const [created] = await knex('posts').insert(post).returning('*');
+      if (!created) throw new Error('Failed to create post: no row returned');
       return created;
     },
 

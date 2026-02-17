@@ -33,6 +33,7 @@ export function channelModel(db?: Knex) {
 
     async create(channel: Partial<Channel>): Promise<Channel> {
       const [created] = await knex('channels').insert(channel).returning('*');
+      if (!created) throw new Error('Failed to create channel: no row returned');
       return created;
     },
 

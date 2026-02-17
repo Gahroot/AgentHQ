@@ -25,6 +25,7 @@ export function orgModel(db?: Knex) {
 
     async create(org: Partial<Org>): Promise<Org> {
       const [created] = await knex('orgs').insert(org).returning('*');
+      if (!created) throw new Error('Failed to create org: no row returned');
       return created;
     },
 

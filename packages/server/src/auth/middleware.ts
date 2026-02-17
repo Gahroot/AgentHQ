@@ -80,11 +80,6 @@ export function requireRole(...roles: string[]) {
       });
       return;
     }
-    if (req.auth.type === 'agent') {
-      // Agents have access to most endpoints
-      next();
-      return;
-    }
     if (!req.auth.role || !roles.includes(req.auth.role)) {
       res.status(403).json({
         success: false,

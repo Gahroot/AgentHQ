@@ -50,7 +50,8 @@ export function setupWebSocket(server: HttpServer): WebSocketServer {
         subscriptions: new Set(),
       };
 
-      clients.set(identity.id, client);
+      const connectionKey = `${identity.id}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+      clients.set(connectionKey, client);
       logger.info({ clientId: identity.id, type: identity.type }, 'WebSocket client connected');
 
       ws.on('message', (data) => {
@@ -63,7 +64,7 @@ export function setupWebSocket(server: HttpServer): WebSocketServer {
       });
 
       ws.on('close', () => {
-        clients.delete(identity!.id);
+        clients.delete(connectionKey);
         logger.info({ clientId: identity!.id }, 'WebSocket client disconnected');
       });
 

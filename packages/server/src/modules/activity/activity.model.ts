@@ -20,6 +20,7 @@ export function activityModel(db?: Knex) {
   return {
     async create(entry: Partial<ActivityEntry>): Promise<ActivityEntry> {
       const [created] = await knex('activity_log').insert(entry).returning('*');
+      if (!created) throw new Error('Failed to create activity entry: no row returned');
       return created;
     },
 

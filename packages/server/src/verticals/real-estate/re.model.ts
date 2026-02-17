@@ -50,18 +50,13 @@ export function reModel(db?: Knex) {
     },
 
     async upsertProfile(agentId: string, data: Partial<REAgentProfile>): Promise<REAgentProfile> {
-      const existing = await knex('re_agent_profiles').where('agent_id', agentId).first();
-      if (existing) {
-        const [updated] = await knex('re_agent_profiles')
-          .where('agent_id', agentId)
-          .update({ ...data, updated_at: knex.fn.now() })
-          .returning('*');
-        return updated;
-      }
-      const [created] = await knex('re_agent_profiles')
+      const [result] = await knex('re_agent_profiles')
         .insert({ agent_id: agentId, ...data })
+        .onConflict('agent_id')
+        .merge({ ...data, updated_at: knex.fn.now() })
         .returning('*');
-      return created;
+      if (!result) throw new Error('Upsert returned no rows');
+      return result;
     },
 
     // Transactions
@@ -98,6 +93,7 @@ export function reModel(db?: Knex) {
 
     async createTransaction(tx: Partial<RETransaction>): Promise<RETransaction> {
       const [created] = await knex('re_transactions').insert(tx).returning('*');
+      if (!created) throw new Error('Failed to create transaction: no row returned');
       return created;
     },
 
@@ -124,6 +120,7 @@ export function reModel(db?: Knex) {
 
     async upsertMetrics(data: Partial<REMetrics>): Promise<REMetrics> {
       const [created] = await knex('re_metrics').insert(data).returning('*');
+      if (!created) throw new Error('Failed to upsert metrics: no row returned');
       return created;
     },
 

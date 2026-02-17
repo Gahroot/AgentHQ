@@ -38,6 +38,7 @@ export function insightModel(db?: Knex) {
 
     async create(insight: Partial<Insight>): Promise<Insight> {
       const [created] = await knex('insights').insert(insight).returning('*');
+      if (!created) throw new Error('Failed to create insight: no row returned');
       return created;
     },
   };

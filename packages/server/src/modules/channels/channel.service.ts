@@ -11,16 +11,16 @@ const DEFAULT_CHANNELS = [
 
 export const channelService = {
   async createDefaultChannels(orgId: string) {
-    for (const ch of DEFAULT_CHANNELS) {
-      await channelModel().create({
+    await Promise.all(DEFAULT_CHANNELS.map(ch =>
+      channelModel().create({
         id: generateId(),
         org_id: orgId,
         name: ch.name,
         description: ch.description,
         type: ch.type,
         created_by: null,
-      });
-    }
+      })
+    ));
   },
 
   async listChannels(orgId: string) {
