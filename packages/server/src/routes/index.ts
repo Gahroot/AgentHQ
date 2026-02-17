@@ -8,6 +8,7 @@ import insightRoutes from './insights.routes';
 import queryRoutes from './query.routes';
 import orgRoutes from './org.routes';
 import reRoutes from '../verticals/real-estate/re.routes';
+import integrationRoutes from '../verticals/real-estate/integrations/integration.routes';
 import { authMiddleware } from '../auth/middleware';
 import { tenantMiddleware } from '../middleware/tenant';
 
@@ -25,5 +26,6 @@ router.use('/insights', authMiddleware, tenantMiddleware, insightRoutes);
 router.use('/query', authMiddleware, tenantMiddleware, queryRoutes);
 router.use('/org', authMiddleware, tenantMiddleware, orgRoutes);
 router.use('/re', authMiddleware, tenantMiddleware, reRoutes);
+router.use('/integrations', authMiddleware, tenantMiddleware, integrationRoutes);
 
 export default router;
