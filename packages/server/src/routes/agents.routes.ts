@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { agentService } from '../modules/agents/agent.service';
@@ -12,6 +12,17 @@ const searchAgentsSchema = z.object({
   status: z.enum(['online', 'offline', 'busy']).optional(),
 });
 
+const updateAgentSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  capabilities: z.array(z.string()).optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
+
+const heartbeatSchema = z.object({
+  status: z.enum(['online', 'offline', 'busy']).optional(),
+});
+
 router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   const { limit, offset, page } = parsePagination(req);
   const { agents, total } = await agentService.listAgents(req.auth!.orgId, limit, offset);
@@ -22,7 +33,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   });
 });
 
-router.get('/search', async (req: AuthenticatedRequest, res: Response) => {
+router.get('/search', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const params = searchAgentsSchema.parse({
       q: req.query.q,
@@ -52,7 +63,7 @@ router.get('/search', async (req: AuthenticatedRequest, res: Response) => {
       res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: err.errors[0].message } });
       return;
     }
-    throw err;
+    next(err);
   }
 });
 
@@ -65,13 +76,22 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
   res.json({ success: true, data: agent });
 });
 
-router.patch('/:id', async (req: AuthenticatedRequest, res: Response) => {
-  const agent = await agentService.updateAgent(req.params.id, req.auth!.orgId, req.body);
-  if (!agent) {
-    res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Agent not found' } });
-    return;
+router.patch('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const body = updateAgentSchema.parse(req.body);
+    const agent = await agentService.updateAgent(req.params.id, req.auth!.orgId, body);
+    if (!agent) {
+      res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Agent not found' } });
+      return;
+    }
+    res.json({ success: true, data: agent });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: err.errors[0].message } });
+      return;
+    }
+    next(err);
   }
-  res.json({ success: true, data: agent });
 });
 
 router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
@@ -83,9 +103,18 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
   res.json({ success: true, data: { deleted: true } });
 });
 
-router.post('/:id/heartbeat', async (req: AuthenticatedRequest, res: Response) => {
-  await agentService.heartbeat(req.params.id, req.auth!.orgId, req.body.status);
-  res.json({ success: true, data: { ok: true } });
+router.post('/:id/heartbeat', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const body = heartbeatSchema.parse(req.body);
+    await agentService.heartbeat(req.params.id, req.auth!.orgId, body.status);
+    res.json({ success: true, data: { ok: true } });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: err.errors[0].message } });
+      return;
+    }
+    next(err);
+  }
 });
 
 export default router;

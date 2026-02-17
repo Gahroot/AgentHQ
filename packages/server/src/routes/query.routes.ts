@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { queryService } from '../modules/query/query.service';
@@ -10,7 +10,7 @@ const querySchema = z.object({
   context: z.record(z.any()).optional(),
 });
 
-router.post('/', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const body = querySchema.parse(req.body);
 
@@ -25,7 +25,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: err.errors[0].message } });
       return;
     }
-    throw err;
+    next(err);
   }
 });
 

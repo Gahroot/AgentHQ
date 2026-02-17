@@ -52,7 +52,10 @@ func newQueryAskCmd() *cobra.Command {
 					Title string `json:"title"`
 				} `json:"sources"`
 			}
-			json.Unmarshal(resp.Data, &data)
+			if err := json.Unmarshal(resp.Data, &data); err != nil {
+				output.PrintError(fmt.Sprintf("Failed to parse response: %v", err))
+				return nil
+			}
 
 			fmt.Println(data.Answer)
 			if len(data.Sources) > 0 {

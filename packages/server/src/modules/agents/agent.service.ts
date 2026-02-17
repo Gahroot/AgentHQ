@@ -44,7 +44,7 @@ export const agentService = {
     return { agent: safe, apiKey };
   },
 
-  async updateAgent(id: string, orgId: string, data: { name?: string; description?: string; capabilities?: string[]; metadata?: Record<string, any> }) {
+  async updateAgent(id: string, orgId: string, data: { name?: string; description?: string; capabilities?: string[]; metadata?: Record<string, unknown> }) {
     return agentModel().update(id, orgId, data);
   },
 

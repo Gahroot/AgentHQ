@@ -11,7 +11,10 @@ export function createApp() {
 
   // Middleware
   app.use(helmet());
-  app.use(cors());
+  app.use(cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+    credentials: true,
+  }));
   app.use(express.json());
   app.use(requestLogger);
   app.use(rateLimiter);

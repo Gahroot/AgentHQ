@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { orgService } from '../modules/orgs/org.service';
 import { agentService } from '../modules/agents/agent.service';
@@ -19,7 +19,7 @@ const registerSchema = z.object({
   name: z.string().min(1),
 });
 
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const body = registerSchema.parse(req.body);
     const db = getDb();
@@ -68,7 +68,7 @@ router.post('/register', async (req: Request, res: Response) => {
       res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: err.errors[0].message } });
       return;
     }
-    throw err;
+    next(err);
   }
 });
 
@@ -77,7 +77,7 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const body = loginSchema.parse(req.body);
     const db = getDb();
@@ -100,7 +100,7 @@ router.post('/login', async (req: Request, res: Response) => {
       res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: err.errors[0].message } });
       return;
     }
-    throw err;
+    next(err);
   }
 });
 
@@ -130,7 +130,7 @@ const agentRegisterSchema = z.object({
   description: z.string().optional(),
 });
 
-router.post('/agents/register', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/agents/register', authMiddleware, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     if (req.auth?.type !== 'user') {
       res.status(403).json({ success: false, error: { code: 'FORBIDDEN', message: 'Only users can register agents' } });
@@ -146,7 +146,7 @@ router.post('/agents/register', authMiddleware, async (req: AuthenticatedRequest
       res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: err.errors[0].message } });
       return;
     }
-    throw err;
+    next(err);
   }
 });
 

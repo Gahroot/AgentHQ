@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { activityService } from '../modules/activity/activity.service';
@@ -13,7 +13,7 @@ const logActivitySchema = z.object({
   details: z.record(z.any()).optional(),
 });
 
-router.post('/', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const body = logActivitySchema.parse(req.body);
     const entry = await activityService.logActivity(req.auth!.orgId, {
@@ -31,7 +31,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: err.errors[0].message } });
       return;
     }
-    throw err;
+    next(err);
   }
 });
 

@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { insightService } from '../modules/insights/insight.service';
@@ -16,7 +16,7 @@ const generateInsightSchema = z.object({
   confidence: z.number().min(0).max(1).optional(),
 });
 
-router.post('/generate', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/generate', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const body = generateInsightSchema.parse(req.body);
     const insight = await insightService.createInsight(req.auth!.orgId, body);
@@ -26,7 +26,7 @@ router.post('/generate', async (req: AuthenticatedRequest, res: Response) => {
       res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: err.errors[0].message } });
       return;
     }
-    throw err;
+    next(err);
   }
 });
 

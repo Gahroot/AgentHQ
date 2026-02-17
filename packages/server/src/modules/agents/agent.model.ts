@@ -12,7 +12,7 @@ export interface Agent {
   status: string;
   last_heartbeat: Date | null;
   capabilities: string[];
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   created_at: Date;
   updated_at: Date;
 }
@@ -40,6 +40,7 @@ export function agentModel(db?: Knex) {
 
     async create(agent: Partial<Agent>): Promise<Agent> {
       const [created] = await knex('agents').insert(agent).returning('*');
+      if (!created) throw new Error('Failed to create agent: no row returned');
       return created;
     },
 
@@ -57,7 +58,7 @@ export function agentModel(db?: Knex) {
     },
 
     async updateHeartbeat(id: string, orgId: string, status?: string): Promise<void> {
-      const update: any = { last_heartbeat: knex.fn.now() };
+      const update: Record<string, unknown> = { last_heartbeat: knex.fn.now() };
       if (status) update.status = status;
       await knex('agents').where({ id, org_id: orgId }).update(update);
     },

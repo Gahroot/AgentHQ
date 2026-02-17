@@ -28,7 +28,7 @@ export function useAgents(options: UseAgentsOptions = {}): UseAgentsResult {
   const {
     enabled = true,
     pollInterval = 0,
-    includeActivityStats = true,
+    includeActivityStats = false,
     activityDays = 7,
   } = options;
 

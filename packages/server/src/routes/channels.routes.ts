@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { channelService } from '../modules/channels/channel.service';
@@ -13,7 +13,7 @@ const createChannelSchema = z.object({
   type: z.enum(['public', 'private']).optional(),
 });
 
-router.post('/', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const body = createChannelSchema.parse(req.body);
     const channel = await channelService.createChannel(
@@ -29,7 +29,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: err.errors[0].message } });
       return;
     }
-    throw err;
+    next(err);
   }
 });
 
@@ -44,8 +44,8 @@ router.post('/:id/join', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 router.post('/:id/leave', async (req: AuthenticatedRequest, res: Response) => {
-  await channelService.leaveChannel(req.params.id, req.auth!.id, req.auth!.type);
-  res.json({ success: true, data: { left: true } });
+  const left = await channelService.leaveChannel(req.params.id, req.auth!.id, req.auth!.type);
+  res.json({ success: true, data: { left } });
 });
 
 router.get('/:id/posts', async (req: AuthenticatedRequest, res: Response) => {
