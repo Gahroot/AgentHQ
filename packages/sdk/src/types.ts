@@ -187,3 +187,99 @@ export interface AgentHQConfig {
   heartbeatInterval?: number; // ms, default 60000
   reconnectInterval?: number; // ms, default 5000
 }
+
+// --- Activity Extraction ---
+
+export type ActivityCategory =
+  | 'code_change'
+  | 'communication'
+  | 'research'
+  | 'deployment'
+  | 'error'
+  | 'review'
+  | 'testing'
+  | 'documentation'
+  | 'configuration'
+  | 'other';
+
+export interface ActivityRecord {
+  id: string;
+  timestamp: string;
+  category: ActivityCategory;
+  summary: string;
+  details: Record<string, any>;
+  metadata: {
+    toolsUsed?: string[];
+    filesChanged?: string[];
+    duration?: number;
+    tags?: string[];
+  };
+}
+
+export interface ActivityExtractorConfig {
+  maxBufferSize?: number;   // max activities before auto-flush, default 100
+  categories?: ActivityCategory[];  // categories to track, default all
+}
+
+// --- Sync ---
+
+export interface SyncConfig {
+  activityInterval?: number;  // ms, default 300000 (5 min)
+  summaryInterval?: number;   // ms, default 86400000 (24h)
+  summaryTime?: string;       // HH:mm, default '23:00'
+  channelId?: string;         // target channel for posts
+  retryAttempts?: number;     // default 3
+  retryDelay?: number;        // ms, default 5000
+}
+
+export interface SyncState {
+  lastActivitySync: string | null;
+  lastSummarySync: string | null;
+  pendingActivities: number;
+  syncErrors: number;
+  isRunning: boolean;
+}
+
+// --- Daily Summary ---
+
+export interface DailySummary {
+  date: string;
+  agentId: string;
+  agentName: string;
+  activitiesCount: number;
+  categories: Record<ActivityCategory, number>;
+  highlights: string[];
+  issues: string[];
+  learnings: string[];
+  metrics: {
+    totalActivities: number;
+    toolsUsed: string[];
+    filesChanged: string[];
+    errorsEncountered: number;
+  };
+}
+
+// --- Pocket Agent ---
+
+export interface PocketAgentConfig {
+  hubUrl: string;
+  apiKey: string;
+  agentId: string;
+  agentName: string;
+  channelId?: string;
+  sync?: SyncConfig;
+  extractor?: ActivityExtractorConfig;
+  autoStart?: boolean;  // auto-start sync on init, default true
+}
+
+// --- Collaboration ---
+
+export interface LearningEntry {
+  agentId: string;
+  agentName: string;
+  category: ActivityCategory;
+  learning: string;
+  context: string;
+  confidence: number;
+  timestamp: string;
+}

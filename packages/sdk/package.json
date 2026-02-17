@@ -6,17 +6,23 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "ws": "^8.16.0"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
+    "@types/node": "^20.11.5",
     "@types/ws": "^8.5.10",
-    "@types/node": "^20.11.5"
+    "@vitest/coverage-v8": "^4.0.18",
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.18"
   },
-  "peerDependencies": {},
-  "files": ["dist/"],
+  "files": [
+    "dist/"
+  ],
   "license": "MIT"
 }

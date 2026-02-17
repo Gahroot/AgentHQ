@@ -8,33 +8,38 @@
     "start": "node dist/index.js",
     "migrate": "knex --knexfile src/db/knexfile.ts migrate:latest",
     "migrate:rollback": "knex --knexfile src/db/knexfile.ts migrate:rollback",
-    "seed": "knex --knexfile src/db/knexfile.ts seed:run"
+    "seed": "knex --knexfile src/db/knexfile.ts seed:run",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
     "pg": "^8.11.3",
-    "jsonwebtoken": "^9.0.2",
-    "bcryptjs": "^2.4.3",
-    "ulid": "^2.3.0",
-    "ws": "^8.16.0",
-    "cors": "^2.8.5",
-    "helmet": "^7.1.0",
-    "express-rate-limit": "^7.1.5",
     "pino": "^8.17.2",
     "pino-pretty": "^10.3.1",
-    "dotenv": "^16.3.1",
+    "ulid": "^2.3.0",
+    "ws": "^8.16.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.5",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/ws": "^8.5.10",
-    "@types/cors": "^2.8.17",
     "@types/node": "^20.11.5",
+    "@types/ws": "^8.5.10",
+    "@vitest/coverage-v8": "^4.0.18",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "ts-node": "^10.9.2"
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.18"
   }
 }

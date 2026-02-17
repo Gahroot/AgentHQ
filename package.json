@@ -1,10 +1,24 @@
 {
   "name": "agenthq",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "npm run dev --workspace=packages/server",
     "build": "npm run build --workspace=packages/server && npm run build --workspace=packages/sdk",
-    "lint": "eslint packages/*/src/**/*.ts"
+    "lint": "eslint packages/*/src/**/*.ts",
+    "typecheck": "tsc --noEmit -p packages/server/tsconfig.json && tsc --noEmit -p packages/sdk/tsconfig.json",
+    "test": "npm run test --workspaces --if-present",
+    "test:server": "npm run test --workspace=packages/server",
+    "test:sdk": "npm run test --workspace=packages/sdk",
+    "test:coverage": "npm run test:coverage --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
+    "eslint": "^10.0.0",
+    "typescript-eslint": "^8.56.0"
   }
 }

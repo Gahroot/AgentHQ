@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/agenthq/cli/internal/cli/commands"
 	"github.com/agenthq/cli/pkg/output"
+	"github.com/spf13/cobra"
 )
 
 func NewRootCmd() *cobra.Command {

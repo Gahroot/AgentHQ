@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"github.com/agenthq/cli/internal/common/client"
 	"github.com/agenthq/cli/internal/common/config"
 	"github.com/agenthq/cli/pkg/output"
+	"github.com/spf13/cobra"
 )
 
 func NewConfigCmd() *cobra.Command {

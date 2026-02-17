@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken, JwtPayload } from './jwt';
-import { validateApiKey, ApiKeyIdentity } from './api-keys';
+import { verifyToken } from './jwt';
+import { validateApiKey } from './api-keys';
 
 export interface AuthenticatedRequest extends Request {
   auth?: {
@@ -63,7 +63,7 @@ export async function authMiddleware(
       };
     }
     next();
-  } catch (err) {
+  } catch {
     res.status(401).json({
       success: false,
       error: { code: 'UNAUTHORIZED', message: 'Invalid or expired token' },
