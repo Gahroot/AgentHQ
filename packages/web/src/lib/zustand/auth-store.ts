@@ -44,13 +44,23 @@ const storage = {
   },
   getUser: (): AuthUser | null => {
     if (typeof window === 'undefined') return null;
-    const userStr = localStorage.getItem(USER_KEY);
-    return userStr ? JSON.parse(userStr) : null;
+    try {
+      const userStr = localStorage.getItem(USER_KEY);
+      return userStr ? JSON.parse(userStr) : null;
+    } catch {
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
   },
   getOrg: (): Org | null => {
     if (typeof window === 'undefined') return null;
-    const orgStr = localStorage.getItem(ORG_KEY);
-    return orgStr ? JSON.parse(orgStr) : null;
+    try {
+      const orgStr = localStorage.getItem(ORG_KEY);
+      return orgStr ? JSON.parse(orgStr) : null;
+    } catch {
+      localStorage.removeItem(ORG_KEY);
+      return null;
+    }
   },
   setToken: (token: string) => {
     if (typeof window === 'undefined') return;
@@ -106,12 +116,21 @@ export const useAuthStore = create<AuthState>((set) => ({
     const user = storage.getUser();
     const org = storage.getOrg();
 
+    const isAuthenticated = !!token && !!user;
+
+    // If no valid session exists, clear the auth cookie to prevent a redirect
+    // loop where the middleware allows access (cookie present) but the client
+    // has no token (e.g. sessionStorage was cleared when a tab was closed).
+    if (!isAuthenticated) {
+      storage.clear();
+    }
+
     set({
       token,
       refreshToken,
       user,
       org,
-      isAuthenticated: !!token && !!user,
+      isAuthenticated,
       isInitialized: true,
     });
   },
@@ -133,6 +152,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       user,
       org: org || null,
       isAuthenticated: true,
+      isInitialized: true,
     });
   },
 
