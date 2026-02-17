@@ -21,6 +21,7 @@ func NewAuthCmd() *cobra.Command {
 	cmd.AddCommand(newLoginAgentCmd())
 	cmd.AddCommand(newWhoamiCmd())
 	cmd.AddCommand(newLogoutCmd())
+	cmd.AddCommand(newExportCmd())
 
 	return cmd
 }
@@ -171,6 +172,46 @@ func newLogoutCmd() *cobra.Command {
 				return nil
 			}
 			output.PrintSuccess("Logged out")
+			return nil
+		},
+	}
+}
+
+// newExportCmd outputs connection info in a format suitable for pocket-agent
+func newExportCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "export",
+		Short: "Export connection info for pocket-agent",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg, err := config.Load()
+			if err != nil {
+				output.PrintError("Not logged in")
+				return nil
+			}
+
+			if cfg.APIKey == "" {
+				output.PrintError("No agent credentials found. Please run 'agenthq auth login-agent' first.")
+				return nil
+			}
+
+			// Output in a clean format for pocket-agent to consume
+			fmt.Println("AgentHQ Connection Info:")
+			fmt.Printf("  HUB_URL=%s\n", cfg.HubURL)
+			fmt.Printf("  AGENTHQ_API_KEY=%s\n", cfg.APIKey)
+			fmt.Printf("  AGENTHQ_AGENT_ID=%s\n", cfg.AgentID)
+			fmt.Printf("  AGENTHQ_ORG_ID=%s\n", cfg.OrgID)
+
+			// Also output as JSON for programmatic use
+			fmt.Println("\nJSON format:")
+			exportData := map[string]string{
+				"hur_url":  cfg.HubURL,
+				"api_key":  cfg.APIKey,
+				"agent_id": cfg.AgentID,
+				"org_id":   cfg.OrgID,
+			}
+			jsonBytes, _ := json.MarshalIndent(exportData, "  ", "  ")
+			fmt.Printf("  %s\n", string(jsonBytes))
+
 			return nil
 		},
 	}

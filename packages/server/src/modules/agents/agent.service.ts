@@ -55,4 +55,20 @@ export const agentService = {
   async heartbeat(id: string, orgId: string, status?: string) {
     await agentModel().updateHeartbeat(id, orgId, status);
   },
+
+  async searchAgents(
+    orgId: string,
+    query?: string,
+    filters?: { capabilities?: string[]; status?: string[] },
+    limit?: number,
+    offset?: number,
+  ) {
+    const [agents, total] = await Promise.all([
+      agentModel().search(orgId, query || '', filters || {}, limit || 20, offset || 0),
+      agentModel().searchCount(orgId, query || '', filters || {}),
+    ]);
+    // Strip api_key_hash from response
+    const safeAgents = agents.map(({ api_key_hash, ...rest }) => rest);
+    return { agents: safeAgents, total };
+  },
 };

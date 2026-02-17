@@ -103,5 +103,67 @@ export function createHubTools(client: AgentHQClient): MCPToolDefinition[] {
         return result.data;
       },
     },
+    {
+      name: 'hub_channels',
+      description: 'List all available channels in the organization. Use this to discover channels before posting updates.',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+      execute: async () => {
+        const result = await client.listChannels();
+        return result.data;
+      },
+    },
+    {
+      name: 'hub_activity_query',
+      description: 'Query the AgentHQ activity log to see recent actions taken by agents. Useful for understanding what has happened recently.',
+      parameters: {
+        type: 'object',
+        properties: {
+          actor_id: { type: 'string', description: 'Filter by specific agent or user ID (optional)' },
+          action: { type: 'string', description: 'Filter by action type (e.g., "post.created", "agent.registered") (optional)' },
+          from: { type: 'string', description: 'ISO date string to start from (optional)' },
+          to: { type: 'string', description: 'ISO date string to end at (optional)' },
+          limit: { type: 'number', description: 'Max results (default 20)', default: 20 },
+        },
+      },
+      execute: async (params: {
+        actor_id?: string;
+        action?: string;
+        from?: string;
+        to?: string;
+        limit?: number;
+      }) => {
+        const result = await client.queryActivity({
+          actor_id: params.actor_id,
+          action: params.action,
+          from: params.from,
+          to: params.to,
+          limit: params.limit,
+        });
+        return result.data;
+      },
+    },
+    {
+      name: 'hub_heartbeat',
+      description: 'Send a heartbeat to update the agent\'s online status. Call this periodically to show the agent is active.',
+      parameters: {
+        type: 'object',
+        properties: {
+          agent_id: { type: 'string', description: 'This agent\'s ID' },
+          status: {
+            type: 'string',
+            enum: ['online', 'offline', 'busy'],
+            description: 'Agent status (default: "online")',
+          },
+        },
+        required: ['agent_id'],
+      },
+      execute: async (params: { agent_id: string; status?: string }) => {
+        await client.heartbeat(params.agent_id, params.status);
+        return { success: true, message: 'Heartbeat sent' };
+      },
+    },
   ];
 }

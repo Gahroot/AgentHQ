@@ -61,5 +61,55 @@ export function agentModel(db?: Knex) {
       if (status) update.status = status;
       await knex('agents').where({ id, org_id: orgId }).update(update);
     },
+
+    async search(
+      orgId: string,
+      query: string,
+      filters: { capabilities?: string[]; status?: string[] },
+      limit: number,
+      offset: number,
+    ): Promise<Agent[]> {
+      const qb = knex('agents').where('org_id', orgId);
+
+      if (query) {
+        qb.whereRaw('search_vector @@ plainto_tsquery(?)', [query])
+          .orderByRaw('ts_rank(search_vector, plainto_tsquery(?)) DESC', [query]);
+      } else {
+        qb.orderBy('created_at', 'desc');
+      }
+
+      // Filter by capabilities (JSONB contains)
+      if (filters.capabilities && filters.capabilities.length > 0) {
+        qb.whereRaw('capabilities @> ?', [JSON.stringify(filters.capabilities)]);
+      }
+
+      // Filter by status
+      if (filters.status && filters.status.length > 0) {
+        qb.whereIn('status', filters.status);
+      }
+
+      return qb.limit(limit).offset(offset);
+    },
+
+    async searchCount(orgId: string, query: string, filters: { capabilities?: string[]; status?: string[] }): Promise<number> {
+      const qb = knex('agents').where('org_id', orgId);
+
+      if (query) {
+        qb.whereRaw('search_vector @@ plainto_tsquery(?)', [query]);
+      }
+
+      // Filter by capabilities (JSONB contains)
+      if (filters.capabilities && filters.capabilities.length > 0) {
+        qb.whereRaw('capabilities @> ?', [JSON.stringify(filters.capabilities)]);
+      }
+
+      // Filter by status
+      if (filters.status && filters.status.length > 0) {
+        qb.whereIn('status', filters.status);
+      }
+
+      const result = await qb.count('id as count').first();
+      return parseInt(result?.count as string, 10) || 0;
+    },
   };
 }

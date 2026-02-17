@@ -7,6 +7,9 @@ const mockClient = {
   searchPosts: vi.fn(),
   logActivity: vi.fn(),
   listAgents: vi.fn(),
+  listChannels: vi.fn(),
+  queryActivity: vi.fn(),
+  heartbeat: vi.fn(),
 } as any;
 
 describe('createHubTools', () => {
@@ -22,8 +25,8 @@ describe('createHubTools', () => {
   // ============================================================
 
   describe('tool definitions', () => {
-    it('returns 5 tools', () => {
-      expect(tools).toHaveLength(5);
+    it('returns 8 tools', () => {
+      expect(tools).toHaveLength(8);
     });
 
     it('each tool has name, description, parameters, and execute', () => {
@@ -46,6 +49,9 @@ describe('createHubTools', () => {
       expect(names).toContain('hub_search');
       expect(names).toContain('hub_activity');
       expect(names).toContain('hub_agents');
+      expect(names).toContain('hub_channels');
+      expect(names).toContain('hub_activity_query');
+      expect(names).toContain('hub_heartbeat');
     });
 
     it('tool names are in the expected order', () => {
@@ -54,6 +60,9 @@ describe('createHubTools', () => {
       expect(tools[2].name).toBe('hub_search');
       expect(tools[3].name).toBe('hub_activity');
       expect(tools[4].name).toBe('hub_agents');
+      expect(tools[5].name).toBe('hub_channels');
+      expect(tools[6].name).toBe('hub_activity_query');
+      expect(tools[7].name).toBe('hub_heartbeat');
     });
 
     it('hub_post has required parameters channel_id and content', () => {
@@ -363,6 +372,122 @@ describe('createHubTools', () => {
 
         const tool = tools.find((t) => t.name === 'hub_agents')!;
         await expect(tool.execute({})).rejects.toThrow('Unauthorized');
+      });
+    });
+
+    describe('hub_channels', () => {
+      it('calls client.listChannels and returns data', async () => {
+        const expectedData = [
+          { id: 'ch_1', name: 'general', type: 'public' },
+          { id: 'ch_2', name: 'private', type: 'private' },
+        ];
+        mockClient.listChannels.mockResolvedValueOnce({
+          success: true,
+          data: expectedData,
+        });
+
+        const tool = tools.find((t) => t.name === 'hub_channels')!;
+        const result = await tool.execute({});
+
+        expect(mockClient.listChannels).toHaveBeenCalledWith();
+        expect(result).toEqual(expectedData);
+      });
+
+      it('propagates errors from client.listChannels', async () => {
+        mockClient.listChannels.mockRejectedValueOnce(
+          new Error('Failed to fetch channels'),
+        );
+
+        const tool = tools.find((t) => t.name === 'hub_channels')!;
+        await expect(tool.execute({})).rejects.toThrow('Failed to fetch channels');
+      });
+    });
+
+    describe('hub_activity_query', () => {
+      it('calls client.queryActivity with filters and returns data', async () => {
+        const expectedData = [
+          { id: 'act_1', action: 'post.created', actor_id: 'agent_1' },
+        ];
+        mockClient.queryActivity.mockResolvedValueOnce({
+          success: true,
+          data: expectedData,
+        });
+
+        const tool = tools.find((t) => t.name === 'hub_activity_query')!;
+        const result = await tool.execute({
+          actor_id: 'agent_1',
+          action: 'post.created',
+          limit: 10,
+        });
+
+        expect(mockClient.queryActivity).toHaveBeenCalledWith({
+          actor_id: 'agent_1',
+          action: 'post.created',
+          limit: 10,
+        });
+        expect(result).toEqual(expectedData);
+      });
+
+      it('works with no filters', async () => {
+        mockClient.queryActivity.mockResolvedValueOnce({
+          success: true,
+          data: [],
+        });
+
+        const tool = tools.find((t) => t.name === 'hub_activity_query')!;
+        await tool.execute({});
+
+        expect(mockClient.queryActivity).toHaveBeenCalledWith({
+          actor_id: undefined,
+          action: undefined,
+          from: undefined,
+          to: undefined,
+          limit: undefined,
+        });
+      });
+
+      it('propagates errors from client.queryActivity', async () => {
+        mockClient.queryActivity.mockRejectedValueOnce(
+          new Error('Query failed'),
+        );
+
+        const tool = tools.find((t) => t.name === 'hub_activity_query')!;
+        await expect(tool.execute({})).rejects.toThrow('Query failed');
+      });
+    });
+
+    describe('hub_heartbeat', () => {
+      it('calls client.heartbeat with agent_id and status', async () => {
+        mockClient.heartbeat.mockResolvedValueOnce(undefined);
+
+        const tool = tools.find((t) => t.name === 'hub_heartbeat')!;
+        const result = await tool.execute({
+          agent_id: 'agent_123',
+          status: 'online',
+        });
+
+        expect(mockClient.heartbeat).toHaveBeenCalledWith('agent_123', 'online');
+        expect(result).toEqual({ success: true, message: 'Heartbeat sent' });
+      });
+
+      it('works with default status', async () => {
+        mockClient.heartbeat.mockResolvedValueOnce(undefined);
+
+        const tool = tools.find((t) => t.name === 'hub_heartbeat')!;
+        await tool.execute({ agent_id: 'agent_123' });
+
+        expect(mockClient.heartbeat).toHaveBeenCalledWith('agent_123', undefined);
+      });
+
+      it('propagates errors from client.heartbeat', async () => {
+        mockClient.heartbeat.mockRejectedValueOnce(
+          new Error('Heartbeat failed'),
+        );
+
+        const tool = tools.find((t) => t.name === 'hub_heartbeat')!;
+        await expect(
+          tool.execute({ agent_id: 'agent_123' }),
+        ).rejects.toThrow('Heartbeat failed');
       });
     });
   });

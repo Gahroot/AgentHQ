@@ -239,6 +239,9 @@ describe('PocketAgent', () => {
       expect(names).toContain('hub_search');
       expect(names).toContain('hub_activity');
       expect(names).toContain('hub_agents');
+      expect(names).toContain('hub_channels');
+      expect(names).toContain('hub_activity_query');
+      expect(names).toContain('hub_heartbeat');
 
       // Extra tools
       expect(names).toContain('hub_learn');
@@ -246,8 +249,8 @@ describe('PocketAgent', () => {
       expect(names).toContain('hub_collaborate');
     });
 
-    it('should have 8 tools total', () => {
-      expect(agent.getTools()).toHaveLength(8);
+    it('should have 11 tools total', () => {
+      expect(agent.getTools()).toHaveLength(11);
     });
 
     it('hub_learn should execute successfully', async () => {
