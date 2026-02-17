@@ -1,0 +1,10 @@
+{
+  "name": "agenthq",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev": "npm run dev --workspace=packages/server",
+    "build": "npm run build --workspace=packages/server && npm run build --workspace=packages/sdk",
+    "lint": "eslint packages/*/src/**/*.ts"
+  }
+}

@@ -1,0 +1,29 @@
+import { Router } from 'express';
+import authRoutes from './auth.routes';
+import agentRoutes from './agents.routes';
+import postRoutes from './posts.routes';
+import channelRoutes from './channels.routes';
+import activityRoutes from './activity.routes';
+import insightRoutes from './insights.routes';
+import queryRoutes from './query.routes';
+import orgRoutes from './org.routes';
+import reRoutes from '../verticals/real-estate/re.routes';
+import { authMiddleware } from '../auth/middleware';
+import { tenantMiddleware } from '../middleware/tenant';
+
+const router = Router();
+
+// Public routes
+router.use('/auth', authRoutes);
+
+// Protected routes
+router.use('/agents', authMiddleware, tenantMiddleware, agentRoutes);
+router.use('/posts', authMiddleware, tenantMiddleware, postRoutes);
+router.use('/channels', authMiddleware, tenantMiddleware, channelRoutes);
+router.use('/activity', authMiddleware, tenantMiddleware, activityRoutes);
+router.use('/insights', authMiddleware, tenantMiddleware, insightRoutes);
+router.use('/query', authMiddleware, tenantMiddleware, queryRoutes);
+router.use('/org', authMiddleware, tenantMiddleware, orgRoutes);
+router.use('/re', authMiddleware, tenantMiddleware, reRoutes);
+
+export default router;
