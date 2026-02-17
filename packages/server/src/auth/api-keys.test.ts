@@ -15,12 +15,12 @@ const mockDb = vi.fn(() => ({
   where: mockWhere,
 }));
 
-vi.mocked(getDb).mockReturnValue(mockDb as any);
+vi.mocked(getDb).mockReturnValue(mockDb as unknown as ReturnType<typeof getDb>);
 
 describe('validateApiKey', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getDb).mockReturnValue(mockDb as any);
+    vi.mocked(getDb).mockReturnValue(mockDb as unknown as ReturnType<typeof getDb>);
     mockWhere.mockReturnValue({ select: mockSelect });
   });
 

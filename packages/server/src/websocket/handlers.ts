@@ -11,7 +11,7 @@ export interface WsClient {
 
 export interface WsIncomingMessage {
   event: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 export function handleWsMessage(client: WsClient, msg: WsIncomingMessage): void {
@@ -30,19 +30,21 @@ export function handleWsMessage(client: WsClient, msg: WsIncomingMessage): void 
   }
 }
 
-function handleSubscribe(client: WsClient, data: { channel?: string }): void {
-  if (data?.channel) {
-    client.subscriptions.add(data.channel);
-    sendToClient(client, 'subscribed', { channel: data.channel });
-    logger.debug({ clientId: client.id, channel: data.channel }, 'Client subscribed');
+function handleSubscribe(client: WsClient, data: Record<string, unknown> | undefined): void {
+  const channel = data?.channel;
+  if (typeof channel === 'string') {
+    client.subscriptions.add(channel);
+    sendToClient(client, 'subscribed', { channel });
+    logger.debug({ clientId: client.id, channel }, 'Client subscribed');
   }
 }
 
-function handleUnsubscribe(client: WsClient, data: { channel?: string }): void {
-  if (data?.channel) {
-    client.subscriptions.delete(data.channel);
-    sendToClient(client, 'unsubscribed', { channel: data.channel });
-    logger.debug({ clientId: client.id, channel: data.channel }, 'Client unsubscribed');
+function handleUnsubscribe(client: WsClient, data: Record<string, unknown> | undefined): void {
+  const channel = data?.channel;
+  if (typeof channel === 'string') {
+    client.subscriptions.delete(channel);
+    sendToClient(client, 'unsubscribed', { channel });
+    logger.debug({ clientId: client.id, channel }, 'Client unsubscribed');
   }
 }
 
@@ -50,7 +52,7 @@ function handleHeartbeat(client: WsClient): void {
   sendToClient(client, 'heartbeat_ack', { timestamp: new Date().toISOString() });
 }
 
-function sendToClient(client: WsClient, event: string, data: any): void {
+function sendToClient(client: WsClient, event: string, data: Record<string, unknown>): void {
   if (client.ws.readyState === WebSocket.OPEN) {
     client.ws.send(JSON.stringify({ event, data }));
   }

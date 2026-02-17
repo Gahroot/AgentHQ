@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { WebSocket } from 'ws';
 import { handleWsMessage, WsClient } from './handlers';
 
@@ -7,7 +7,7 @@ function createMockClient(): WsClient {
     ws: {
       readyState: WebSocket.OPEN,
       send: vi.fn(),
-    } as any,
+    } as unknown as WebSocket,
     id: 'client-1',
     type: 'user',
     orgId: 'org-1',
@@ -86,7 +86,7 @@ describe('handleWsMessage', () => {
       handleWsMessage(client, { event: 'heartbeat' });
 
       expect(client.ws.send).toHaveBeenCalledTimes(1);
-      const sent = JSON.parse((client.ws.send as any).mock.calls[0][0]);
+      const sent = JSON.parse((client.ws.send as unknown as Mock).mock.calls[0][0] as string);
       expect(sent.event).toBe('heartbeat_ack');
       expect(sent.data).toHaveProperty('timestamp');
       // Verify timestamp is a valid ISO string
@@ -113,7 +113,7 @@ describe('handleWsMessage', () => {
   describe('ws.readyState is not OPEN', () => {
     it('does not send when connection is closed', () => {
       const client = createMockClient();
-      (client.ws as any).readyState = WebSocket.CLOSED;
+      (client.ws as unknown as { readyState: number }).readyState = WebSocket.CLOSED;
 
       handleWsMessage(client, { event: 'heartbeat' });
 

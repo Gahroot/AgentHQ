@@ -15,5 +15,5 @@ vi.mock('../middleware/logger', () => ({
     debug: vi.fn(),
     child: vi.fn().mockReturnThis(),
   },
-  requestLogger: vi.fn((_req: any, _res: any, next: any) => next()),
+  requestLogger: vi.fn((_req: unknown, _res: unknown, next: () => void) => next()),
 }));

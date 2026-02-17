@@ -2,7 +2,7 @@ import { useAuthStore } from '../zustand/auth-store';
 import { ApiResponse, ApiError } from '@/types';
 
 // API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 // Custom error class for API errors
 export class ApiRequestError extends Error {

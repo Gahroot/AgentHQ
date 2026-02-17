@@ -8,17 +8,18 @@ vi.mock('./api-keys', () => ({
   validateApiKey: vi.fn(),
 }));
 
-import { authMiddleware, requireRole } from './middleware';
+import { authMiddleware, requireRole, AuthenticatedRequest } from './middleware';
 import { verifyToken } from './jwt';
 import { validateApiKey } from './api-keys';
+import { Response, NextFunction } from 'express';
 
 function createMocks() {
-  const req = { headers: {}, auth: undefined } as any;
+  const req = { headers: {}, auth: undefined } as unknown as AuthenticatedRequest;
   const res = {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
-  } as any;
-  const next = vi.fn();
+  } as unknown as Response;
+  const next = vi.fn() as unknown as NextFunction;
   return { req, res, next };
 }
 

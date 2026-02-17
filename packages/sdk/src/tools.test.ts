@@ -7,6 +7,7 @@ const mockClient = {
   searchPosts: vi.fn(),
   logActivity: vi.fn(),
   listAgents: vi.fn(),
+  searchAgents: vi.fn(),
   listChannels: vi.fn(),
   queryActivity: vi.fn(),
   heartbeat: vi.fn(),
@@ -25,8 +26,8 @@ describe('createHubTools', () => {
   // ============================================================
 
   describe('tool definitions', () => {
-    it('returns 8 tools', () => {
-      expect(tools).toHaveLength(8);
+    it('returns 9 tools', () => {
+      expect(tools).toHaveLength(9);
     });
 
     it('each tool has name, description, parameters, and execute', () => {
@@ -49,6 +50,7 @@ describe('createHubTools', () => {
       expect(names).toContain('hub_search');
       expect(names).toContain('hub_activity');
       expect(names).toContain('hub_agents');
+      expect(names).toContain('hub_find_agents');
       expect(names).toContain('hub_channels');
       expect(names).toContain('hub_activity_query');
       expect(names).toContain('hub_heartbeat');
@@ -60,9 +62,10 @@ describe('createHubTools', () => {
       expect(tools[2].name).toBe('hub_search');
       expect(tools[3].name).toBe('hub_activity');
       expect(tools[4].name).toBe('hub_agents');
-      expect(tools[5].name).toBe('hub_channels');
-      expect(tools[6].name).toBe('hub_activity_query');
-      expect(tools[7].name).toBe('hub_heartbeat');
+      expect(tools[5].name).toBe('hub_find_agents');
+      expect(tools[6].name).toBe('hub_channels');
+      expect(tools[7].name).toBe('hub_activity_query');
+      expect(tools[8].name).toBe('hub_heartbeat');
     });
 
     it('hub_post has required parameters channel_id and content', () => {
@@ -319,12 +322,12 @@ describe('createHubTools', () => {
     });
 
     describe('hub_agents', () => {
-      it('calls client.listAgents with correct args and returns data', async () => {
+      it('calls client.searchAgents with correct args and returns data', async () => {
         const expectedData = [
           { id: 'agent_1', name: 'Agent Alpha', status: 'online' },
           { id: 'agent_2', name: 'Agent Beta', status: 'offline' },
         ];
-        mockClient.listAgents.mockResolvedValueOnce({
+        mockClient.searchAgents.mockResolvedValueOnce({
           success: true,
           data: expectedData,
         });
@@ -332,14 +335,16 @@ describe('createHubTools', () => {
         const tool = tools.find((t) => t.name === 'hub_agents')!;
         const result = await tool.execute({});
 
-        expect(mockClient.listAgents).toHaveBeenCalledWith({
+        expect(mockClient.searchAgents).toHaveBeenCalledWith({
           limit: undefined,
+          capabilities: undefined,
+          status: undefined,
         });
         expect(result).toEqual(expectedData);
       });
 
-      it('passes limit parameter to listAgents', async () => {
-        mockClient.listAgents.mockResolvedValueOnce({
+      it('passes limit parameter to searchAgents', async () => {
+        mockClient.searchAgents.mockResolvedValueOnce({
           success: true,
           data: [],
         });
@@ -347,11 +352,34 @@ describe('createHubTools', () => {
         const tool = tools.find((t) => t.name === 'hub_agents')!;
         await tool.execute({ limit: 10 });
 
-        expect(mockClient.listAgents).toHaveBeenCalledWith({ limit: 10 });
+        expect(mockClient.searchAgents).toHaveBeenCalledWith({
+          limit: 10,
+          capabilities: undefined,
+          status: undefined,
+        });
+      });
+
+      it('passes capabilities and status to searchAgents', async () => {
+        mockClient.searchAgents.mockResolvedValueOnce({
+          success: true,
+          data: [],
+        });
+
+        const tool = tools.find((t) => t.name === 'hub_agents')!;
+        await tool.execute({
+          capabilities: ['web-search', 'code-execution'],
+          status: 'online',
+        });
+
+        expect(mockClient.searchAgents).toHaveBeenCalledWith({
+          limit: undefined,
+          capabilities: ['web-search', 'code-execution'],
+          status: 'online',
+        });
       });
 
       it('handles undefined params gracefully', async () => {
-        mockClient.listAgents.mockResolvedValueOnce({
+        mockClient.searchAgents.mockResolvedValueOnce({
           success: true,
           data: [],
         });
@@ -360,18 +388,114 @@ describe('createHubTools', () => {
         // Simulate calling with undefined (no params)
         await tool.execute(undefined);
 
-        expect(mockClient.listAgents).toHaveBeenCalledWith({
+        expect(mockClient.searchAgents).toHaveBeenCalledWith({
           limit: undefined,
+          capabilities: undefined,
+          status: undefined,
         });
       });
 
-      it('propagates errors from client.listAgents', async () => {
-        mockClient.listAgents.mockRejectedValueOnce(
+      it('propagates errors from client.searchAgents', async () => {
+        mockClient.searchAgents.mockRejectedValueOnce(
           new Error('Unauthorized'),
         );
 
         const tool = tools.find((t) => t.name === 'hub_agents')!;
         await expect(tool.execute({})).rejects.toThrow('Unauthorized');
+      });
+    });
+
+    describe('hub_find_agents', () => {
+      it('calls client.searchAgents with query and returns data', async () => {
+        const expectedData = [
+          { id: 'agent_1', name: 'Web Search Agent', capabilities: ['web-search'] },
+          { id: 'agent_2', name: 'Code Runner', capabilities: ['code-execution'] },
+        ];
+        mockClient.searchAgents.mockResolvedValueOnce({
+          success: true,
+          data: expectedData,
+        });
+
+        const tool = tools.find((t) => t.name === 'hub_find_agents')!;
+        const result = await tool.execute({ query: 'web search' });
+
+        expect(mockClient.searchAgents).toHaveBeenCalledWith({
+          q: 'web search',
+          capabilities: undefined,
+          status: 'online',
+          limit: undefined,
+        });
+        expect(result).toEqual(expectedData);
+      });
+
+      it('passes capabilities filter to searchAgents', async () => {
+        mockClient.searchAgents.mockResolvedValueOnce({
+          success: true,
+          data: [],
+        });
+
+        const tool = tools.find((t) => t.name === 'hub_find_agents')!;
+        await tool.execute({
+          capabilities: ['web-search', 'file-operations'],
+        });
+
+        expect(mockClient.searchAgents).toHaveBeenCalledWith({
+          q: undefined,
+          capabilities: ['web-search', 'file-operations'],
+          status: 'online',
+          limit: undefined,
+        });
+      });
+
+      it('passes status and limit to searchAgents', async () => {
+        mockClient.searchAgents.mockResolvedValueOnce({
+          success: true,
+          data: [],
+        });
+
+        const tool = tools.find((t) => t.name === 'hub_find_agents')!;
+        await tool.execute({
+          status: 'busy',
+          limit: 5,
+        });
+
+        expect(mockClient.searchAgents).toHaveBeenCalledWith({
+          q: undefined,
+          capabilities: undefined,
+          status: 'busy',
+          limit: 5,
+        });
+      });
+
+      it('handles all params together', async () => {
+        mockClient.searchAgents.mockResolvedValueOnce({
+          success: true,
+          data: [],
+        });
+
+        const tool = tools.find((t) => t.name === 'hub_find_agents')!;
+        await tool.execute({
+          query: 'data processing',
+          capabilities: ['web-search'],
+          status: 'offline',
+          limit: 10,
+        });
+
+        expect(mockClient.searchAgents).toHaveBeenCalledWith({
+          q: 'data processing',
+          capabilities: ['web-search'],
+          status: 'offline',
+          limit: 10,
+        });
+      });
+
+      it('propagates errors from client.searchAgents', async () => {
+        mockClient.searchAgents.mockRejectedValueOnce(
+          new Error('Search failed'),
+        );
+
+        const tool = tools.find((t) => t.name === 'hub_find_agents')!;
+        await expect(tool.execute({ query: 'test' })).rejects.toThrow('Search failed');
       });
     });
 

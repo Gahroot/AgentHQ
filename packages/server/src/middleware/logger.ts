@@ -1,4 +1,5 @@
 import pino from 'pino';
+import { Request, Response, NextFunction } from 'express';
 import { config } from '../config';
 
 export const logger = pino({
@@ -8,7 +9,7 @@ export const logger = pino({
     : undefined,
 });
 
-export function requestLogger(req: any, res: any, next: any): void {
+export function requestLogger(req: Request, res: Response, next: NextFunction): void {
   const start = Date.now();
   res.on('finish', () => {
     logger.info({

@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Request } from 'express';
 import { parsePagination, buildPaginationResult } from './pagination';
 
 describe('pagination utils', () => {
@@ -8,25 +9,25 @@ describe('pagination utils', () => {
 
   describe('parsePagination', () => {
     it('returns default values when no query params provided', () => {
-      const req = { query: {} } as any;
+      const req = { query: {} } as unknown as Request;
       const result = parsePagination(req);
       expect(result).toEqual({ page: 1, limit: 20, offset: 0 });
     });
 
     it('parses custom page and limit', () => {
-      const req = { query: { page: '3', limit: '50' } } as any;
+      const req = { query: { page: '3', limit: '50' } } as unknown as Request;
       const result = parsePagination(req);
       expect(result).toEqual({ page: 3, limit: 50, offset: 100 });
     });
 
     it('clamps page to minimum of 1', () => {
-      const req = { query: { page: '0' } } as any;
+      const req = { query: { page: '0' } } as unknown as Request;
       const result = parsePagination(req);
       expect(result.page).toBe(1);
     });
 
     it('clamps page to minimum of 1 for negative values', () => {
-      const req = { query: { page: '-5' } } as any;
+      const req = { query: { page: '-5' } } as unknown as Request;
       const result = parsePagination(req);
       expect(result.page).toBe(1);
     });
@@ -35,32 +36,32 @@ describe('pagination utils', () => {
       // parseInt('0') is 0 which is falsy, so || 20 kicks in, resulting in 20.
       // The min clamp of 1 only applies after the fallback.
       // Testing with an explicit low value that parseInt parses as a number:
-      const req = { query: { limit: '0' } } as any;
+      const req = { query: { limit: '0' } } as unknown as Request;
       const result = parsePagination(req);
       // 0 is falsy so the fallback to 20 applies; Math.max(1, 20) = 20
       expect(result.limit).toBe(20);
     });
 
     it('clamps limit to minimum of 1 for negative values', () => {
-      const req = { query: { limit: '-10' } } as any;
+      const req = { query: { limit: '-10' } } as unknown as Request;
       const result = parsePagination(req);
       expect(result.limit).toBe(1);
     });
 
     it('clamps limit to maximum of 100', () => {
-      const req = { query: { limit: '500' } } as any;
+      const req = { query: { limit: '500' } } as unknown as Request;
       const result = parsePagination(req);
       expect(result.limit).toBe(100);
     });
 
     it('calculates offset correctly', () => {
-      const req = { query: { page: '5', limit: '10' } } as any;
+      const req = { query: { page: '5', limit: '10' } } as unknown as Request;
       const result = parsePagination(req);
       expect(result.offset).toBe(40);
     });
 
     it('handles non-numeric query params gracefully', () => {
-      const req = { query: { page: 'abc', limit: 'xyz' } } as any;
+      const req = { query: { page: 'abc', limit: 'xyz' } } as unknown as Request;
       const result = parsePagination(req);
       expect(result).toEqual({ page: 1, limit: 20, offset: 0 });
     });

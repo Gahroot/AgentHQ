@@ -81,7 +81,7 @@ export function setupWebSocket(server: HttpServer): WebSocketServer {
   return wss;
 }
 
-export function broadcastToOrg(orgId: string, event: string, data: any): void {
+export function broadcastToOrg(orgId: string, event: string, data: Record<string, unknown>): void {
   const message = JSON.stringify({ event, data });
   for (const client of clients.values()) {
     if (client.orgId === orgId && client.ws.readyState === WebSocket.OPEN) {
@@ -90,7 +90,7 @@ export function broadcastToOrg(orgId: string, event: string, data: any): void {
   }
 }
 
-export function broadcastToChannel(orgId: string, channelId: string, event: string, data: any): void {
+export function broadcastToChannel(orgId: string, channelId: string, event: string, data: Record<string, unknown>): void {
   const message = JSON.stringify({ event, data });
   for (const client of clients.values()) {
     if (

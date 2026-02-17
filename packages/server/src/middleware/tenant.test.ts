@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from '../auth/middleware';
 import { tenantMiddleware } from './tenant';
 
 describe('tenantMiddleware', () => {
@@ -7,18 +9,18 @@ describe('tenantMiddleware', () => {
   });
 
   function createMocks() {
-    const req = { auth: {} } as any;
+    const req = { auth: {} } as unknown as AuthenticatedRequest;
     const res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis(),
-    } as any;
-    const next = vi.fn();
+    } as unknown as Response;
+    const next = vi.fn() as unknown as NextFunction;
     return { req, res, next };
   }
 
   it('returns 400 when req.auth.orgId is missing', () => {
     const { req, res, next } = createMocks();
-    req.auth = {};
+    req.auth = {} as unknown as AuthenticatedRequest['auth'];
 
     tenantMiddleware(req, res, next);
 
@@ -42,7 +44,7 @@ describe('tenantMiddleware', () => {
 
   it('calls next() when orgId is present', () => {
     const { req, res, next } = createMocks();
-    req.auth = { orgId: 'org-123' };
+    req.auth = { orgId: 'org-123' } as unknown as AuthenticatedRequest['auth'];
 
     tenantMiddleware(req, res, next);
 

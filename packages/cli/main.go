@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/agenthq/cli/internal/cli"
+	"github.com/Gahroot/agentHQ-cli/internal/cli"
 )
 
 func main() {

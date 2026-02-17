@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Request, Response, NextFunction } from 'express';
 import { AppError, errorHandler } from './error-handler';
 
 describe('AppError', () => {
@@ -18,12 +19,12 @@ describe('errorHandler', () => {
   });
 
   function createMocks() {
-    const req = {} as any;
+    const req = {} as unknown as Request;
     const res = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis(),
-    } as any;
-    const next = vi.fn();
+    } as unknown as Response;
+    const next = vi.fn() as unknown as NextFunction;
     return { req, res, next };
   }
 
@@ -59,7 +60,7 @@ describe('errorHandler', () => {
 
     errorHandler(err, req, res, next);
 
-    const responseBody = res.json.mock.calls[0][0];
+    const responseBody = vi.mocked(res.json).mock.calls[0][0];
     expect(responseBody.error.message).not.toContain('DB connection failed');
   });
 });
