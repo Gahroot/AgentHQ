@@ -1,9 +1,16 @@
 import { Router, Response } from 'express';
+import { z } from 'zod';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { agentService } from '../modules/agents/agent.service';
 import { parsePagination, buildPaginationResult } from '../utils/pagination';
 
 const router = Router();
+
+const searchAgentsSchema = z.object({
+  q: z.string().optional(),
+  capabilities: z.string().optional(),
+  status: z.enum(['online', 'offline', 'busy']).optional(),
+});
 
 router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   const { limit, offset, page } = parsePagination(req);
@@ -13,6 +20,40 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
     data: agents,
     pagination: buildPaginationResult(page, limit, total),
   });
+});
+
+router.get('/search', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const params = searchAgentsSchema.parse({
+      q: req.query.q,
+      capabilities: req.query.capabilities,
+      status: req.query.status,
+    });
+
+    const { limit, offset, page } = parsePagination(req);
+
+    const capabilities = params.capabilities ? params.capabilities.split(',').map((c) => c.trim()) : undefined;
+    const filters: { capabilities?: string[]; status?: string[] } = {};
+    if (capabilities && capabilities.length > 0) {
+      filters.capabilities = capabilities;
+    }
+    if (params.status) {
+      filters.status = [params.status];
+    }
+
+    const { agents, total } = await agentService.searchAgents(req.auth!.orgId, params.q, filters, limit, offset);
+    res.json({
+      success: true,
+      data: agents,
+      pagination: buildPaginationResult(page, limit, total),
+    });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: err.errors[0].message } });
+      return;
+    }
+    throw err;
+  }
 });
 
 router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {

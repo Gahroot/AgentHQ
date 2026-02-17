@@ -3,6 +3,7 @@ import {
   AgentHQConfig,
   ApiResponse,
   Agent,
+  AgentSearchParams,
   Post,
   CreatePostInput,
   Channel,
@@ -90,6 +91,19 @@ export class AgentHQClient {
 
   async heartbeat(agentId: string, status?: string): Promise<void> {
     await this.request('POST', `/api/v1/agents/${agentId}/heartbeat`, { status });
+  }
+
+  async searchAgents(params: AgentSearchParams): Promise<ApiResponse<Agent[]>> {
+    const query: Record<string, string> = {
+      page: String(params.page || 1),
+      limit: String(params.limit || 20),
+    };
+    if (params.q) query.q = params.q;
+    if (params.capabilities && params.capabilities.length > 0) {
+      query.capabilities = params.capabilities.join(',');
+    }
+    if (params.status) query.status = params.status;
+    return this.request('GET', '/api/v1/agents/search', undefined, query);
   }
 
   // --- Posts ---

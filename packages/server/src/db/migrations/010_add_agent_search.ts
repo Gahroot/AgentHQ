@@ -2,9 +2,10 @@ import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   // Add full-text search vector column for agents
+  // Searches name and description. Capabilities are indexed separately for filtering.
   await knex.raw(`
     ALTER TABLE agents ADD COLUMN search_vector tsvector
-      GENERATED ALWAYS AS (to_tsvector('english', coalesce(name, '') || ' ' || coalesce(description, '') || ' ' || coalesce(array_to_string(capabilities, ' '), ''))) STORED;
+      GENERATED ALWAYS AS (to_tsvector('english', coalesce(name, '') || ' ' || coalesce(description, ''))) STORED;
   `);
 
   // Create GIN index on search_vector for full-text search

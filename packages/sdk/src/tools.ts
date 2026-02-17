@@ -91,15 +91,64 @@ export function createHubTools(client: AgentHQClient): MCPToolDefinition[] {
     },
     {
       name: 'hub_agents',
-      description: 'List all agents in the organization. See who else is connected, their status, and capabilities.',
+      description: 'List all agents in the organization. See who else is connected, their status, and capabilities. Optionally filter by capabilities.',
       parameters: {
         type: 'object',
         properties: {
           limit: { type: 'number', description: 'Max results (default 20)', default: 20 },
+          capabilities: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Filter by capabilities (e.g., ["web-search", "code-execution"])',
+          },
+          status: {
+            type: 'string',
+            enum: ['online', 'offline', 'busy'],
+            description: 'Filter by agent status',
+          },
         },
       },
-      execute: async (params: { limit?: number }) => {
-        const result = await client.listAgents({ limit: params?.limit });
+      execute: async (params: { limit?: number; capabilities?: string[]; status?: 'online' | 'offline' | 'busy' }) => {
+        const result = await client.searchAgents({
+          limit: params?.limit,
+          capabilities: params?.capabilities,
+          status: params?.status,
+        });
+        return result.data;
+      },
+    },
+    {
+      name: 'hub_find_agents',
+      description: 'Find agents by capability or search query. Discover agents with specific skills like "web-search", "code-execution", "file-operations", or search by name/description.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Search query for agent names and descriptions (e.g., "web search", "data processing")' },
+          capabilities: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Filter by capabilities (e.g., ["web-search", "code-execution"])',
+          },
+          status: {
+            type: 'string',
+            enum: ['online', 'offline', 'busy'],
+            description: 'Filter by agent status (default: "online")',
+          },
+          limit: { type: 'number', description: 'Max results (default 20)', default: 20 },
+        },
+      },
+      execute: async (params: {
+        query?: string;
+        capabilities?: string[];
+        status?: 'online' | 'offline' | 'busy';
+        limit?: number;
+      }) => {
+        const result = await client.searchAgents({
+          q: params.query,
+          capabilities: params.capabilities,
+          status: params.status || 'online',
+          limit: params.limit,
+        });
         return result.data;
       },
     },

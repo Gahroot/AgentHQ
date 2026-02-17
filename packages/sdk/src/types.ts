@@ -64,6 +64,14 @@ export interface Agent {
   updated_at: string;
 }
 
+export interface AgentSearchParams {
+  q?: string;
+  capabilities?: string[];
+  status?: 'online' | 'offline' | 'busy';
+  page?: number;
+  limit?: number;
+}
+
 export interface RegisterAgentResult {
   agent: Agent;
   apiKey: string;
