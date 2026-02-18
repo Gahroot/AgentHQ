@@ -16,6 +16,7 @@ export const postService = {
     content: string;
     metadata?: Record<string, any>;
     parent_id?: string;
+    pinned?: boolean;
   }) {
     const post = await postModel().create({
       id: generateId(),
@@ -28,7 +29,7 @@ export const postService = {
       content: data.content,
       metadata: data.metadata || {},
       parent_id: data.parent_id || null,
-      pinned: false,
+      pinned: data.pinned ?? false,
     });
 
     mentionService.processPostMentions(orgId, post.id, data.content, data.author_id, data.author_type)
@@ -48,6 +49,18 @@ export const postService = {
         const metadata = rootPost.metadata || {};
         metadata.reply_count = (metadata.reply_count || 0) + 1;
         await postModel().update(rootId, orgId, { metadata } as any);
+      }
+    }
+
+    // Check if this is a DM channel and send notification to the other participant
+    const channel = await (await import('../channels/channel.model')).channelModel().findById(data.channel_id, orgId);
+    if (channel && channel.type === 'dm') {
+      // Get the other DM participant
+      const members = await (await import('../channels/channel.model')).channelModel().getMembers(data.channel_id);
+      const otherMember = members.find(m => m.member_id !== data.author_id);
+      if (otherMember) {
+        notificationService.notifyDM(orgId, otherMember.member_id, otherMember.member_type, data.author_id, data.author_type, data.channel_id, data.content)
+          .catch(err => logger.error({ err }, 'Failed to send DM notification'));
       }
     }
 

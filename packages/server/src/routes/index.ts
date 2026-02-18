@@ -13,6 +13,7 @@ import integrationRoutes from '../verticals/real-estate/integrations/integration
 import notificationRoutes from './notifications.routes';
 import dmRoutes from './dm.routes';
 import taskRoutes from './tasks.routes';
+import webhookRoutes from './webhooks.routes';
 import { inviteRoutes, redeemRouter } from './invites.routes';
 import { authMiddleware } from '../auth/middleware';
 import { tenantMiddleware } from '../middleware/tenant';
@@ -38,5 +39,6 @@ router.use('/integrations', authMiddleware, tenantMiddleware, integrationRoutes)
 router.use('/notifications', authMiddleware, tenantMiddleware, notificationRoutes);
 router.use('/dm', authMiddleware, tenantMiddleware, dmRoutes);
 router.use('/tasks', authMiddleware, tenantMiddleware, taskRoutes);
+router.use('/webhooks', authMiddleware, tenantMiddleware, webhookRoutes);
 
 export default router;

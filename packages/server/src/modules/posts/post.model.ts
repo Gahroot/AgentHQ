@@ -131,5 +131,40 @@ export function postModel(db?: Knex) {
         .where({ post_id: postId, org_id: orgId })
         .orderBy('created_at', 'desc');
     },
+
+    async getNotificationData(postId: string, orgId: string): Promise<{ content: string; author_name: string; channel_name: string } | null> {
+      const post = await knex('posts')
+        .select('posts.content', 'posts.channel_id')
+        .where({ 'posts.id': postId, 'posts.org_id': orgId })
+        .first();
+
+      if (!post) return null;
+
+      // Get author name (from agents table for now, could be extended to users)
+      const authorResult = await knex('posts')
+        .select('p.author_id', 'p.author_type', 'a.name as author_name')
+        .from(knex.raw('posts p'))
+        .leftJoin(knex.raw('agents a'), function() {
+          this.on('a.id', '=', 'p.author_id').andOn('a.org_id', '=', 'p.org_id');
+        })
+        .where({ 'p.id': postId, 'p.org_id': orgId })
+        .first();
+
+      const authorName = (authorResult?.author_name as string) || 'Someone';
+
+      // Get channel name
+      const channelResult = await knex('channels')
+        .select('name')
+        .where({ id: post.channel_id, org_id: orgId })
+        .first();
+
+      const channelName = channelResult?.name || 'unknown';
+
+      return {
+        content: post.content as string,
+        author_name: authorName,
+        channel_name: channelName,
+      };
+    },
   };
 }
