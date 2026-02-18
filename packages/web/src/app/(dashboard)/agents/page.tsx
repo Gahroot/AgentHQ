@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { Agent } from '@/types';
 import { listAgents } from '@/lib/api/endpoints/agents';
 import { getActivityByActor } from '@/lib/api/endpoints/activity';
@@ -18,7 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Grid3X3, List, Search, Filter, Plus } from 'lucide-react';
+import { Grid3X3, List, Search, Filter } from 'lucide-react';
+import { InviteTokenDialog } from '@/components/agents/invite-token-dialog';
 
 type ViewMode = 'grid' | 'list';
 type StatusFilter = 'all' | 'online' | 'offline' | 'busy';
@@ -186,12 +186,7 @@ export default function AgentsPage() {
           <h1 className="text-2xl font-bold">Agents</h1>
           <p className="text-muted-foreground">Manage and monitor your AI agents</p>
         </div>
-        <Link href="/agents/new">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Agent
-          </Button>
-        </Link>
+        <InviteTokenDialog />
       </div>
 
       {/* Stats */}
@@ -334,14 +329,7 @@ export default function AgentsPage() {
                 ? 'Try adjusting your filters'
                 : 'Get started by creating your first agent'}
             </p>
-            {agents.length === 0 && (
-              <Link href="/agents/new">
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Agent
-                </Button>
-              </Link>
-            )}
+            {agents.length === 0 && <InviteTokenDialog />}
           </CardContent>
         </Card>
       ) : viewMode === 'grid' ? (

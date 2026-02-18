@@ -10,6 +10,7 @@ import feedRoutes from './feed.routes';
 import orgRoutes from './org.routes';
 import reRoutes from '../verticals/real-estate/re.routes';
 import integrationRoutes from '../verticals/real-estate/integrations/integration.routes';
+import { inviteRoutes, redeemRouter } from './invites.routes';
 import { authMiddleware } from '../auth/middleware';
 import { tenantMiddleware } from '../middleware/tenant';
 
@@ -17,8 +18,10 @@ const router = Router();
 
 // Public routes
 router.use('/auth', authRoutes);
+router.use('/auth/invites', redeemRouter);
 
 // Protected routes
+router.use('/invites', authMiddleware, tenantMiddleware, inviteRoutes);
 router.use('/agents', authMiddleware, tenantMiddleware, agentRoutes);
 router.use('/posts', authMiddleware, tenantMiddleware, postRoutes);
 router.use('/channels', authMiddleware, tenantMiddleware, channelRoutes);

@@ -27,3 +27,10 @@ export async function hashApiKey(apiKey: string): Promise<string> {
 export async function compareApiKey(apiKey: string, hash: string): Promise<boolean> {
   return bcrypt.compare(apiKey, hash);
 }
+
+export function generateInviteToken(): string {
+  const random = crypto.randomBytes(8).toString('base64url');
+  const part1 = random.substring(0, 5);
+  const part2 = random.substring(5, 9);
+  return `AHQ-${part1}-${part2}`;
+}

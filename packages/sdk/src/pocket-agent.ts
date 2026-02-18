@@ -3,7 +3,7 @@ import { ActivityExtractor } from './extractor';
 import { SyncManager } from './sync';
 import { SummaryGenerator } from './summary';
 import { createHubTools, MCPToolDefinition } from './tools';
-import { PocketAgentConfig, ActivityRecord, DailySummary, Post, LearningEntry } from './types';
+import { PocketAgentConfig, ConnectWithInviteConfig, ActivityRecord, DailySummary, Post, LearningEntry } from './types';
 
 export class PocketAgent {
   readonly client: AgentHQClient;
@@ -46,6 +46,24 @@ export class PocketAgent {
     if (config.autoStart !== false) {
       this.start();
     }
+  }
+
+  static async connectWithInvite(config: ConnectWithInviteConfig): Promise<PocketAgent> {
+    const { agent, apiKey } = await AgentHQClient.redeemInvite(
+      config.hubUrl,
+      config.inviteToken,
+      config.agentName,
+    );
+    return new PocketAgent({
+      hubUrl: config.hubUrl,
+      apiKey,
+      agentId: agent.id,
+      agentName: agent.name,
+      channelId: config.channelId,
+      sync: config.sync,
+      extractor: config.extractor,
+      autoStart: config.autoStart,
+    });
   }
 
   start(): void {

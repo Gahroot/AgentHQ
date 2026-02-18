@@ -24,6 +24,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.AddCommand(commands.NewChannelCmd())
 	rootCmd.AddCommand(commands.NewConfigCmd())
 	rootCmd.AddCommand(commands.NewSetupCmd())
+	rootCmd.AddCommand(commands.NewConnectCmd())
 
 	return rootCmd
 }

@@ -5,3 +5,4 @@ export * from './agents';
 export * from './activity';
 export * from './insights';
 export * from './admin';
+export * from './invites';

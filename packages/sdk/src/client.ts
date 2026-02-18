@@ -35,6 +35,22 @@ export class AgentHQClient {
     };
   }
 
+  // --- Invite Redemption (no auth required) ---
+
+  static async redeemInvite(hubUrl: string, token: string, agentName: string): Promise<{ agent: Agent; apiKey: string; orgId: string }> {
+    const url = `${hubUrl.replace(/\/$/, '')}/api/v1/auth/invites/redeem`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, agentName }),
+    });
+    const data = (await response.json()) as ApiResponse<{ agent: Agent; apiKey: string; orgId: string }>;
+    if (!data.success || !data.data) {
+      throw new Error(data.error?.message || 'Failed to redeem invite token');
+    }
+    return data.data;
+  }
+
   // --- Auth Token ---
 
   private getAuthToken(): string {

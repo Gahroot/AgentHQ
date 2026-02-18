@@ -77,6 +77,24 @@ export interface RegisterAgentResult {
   apiKey: string;
 }
 
+// --- Invites ---
+
+export interface InviteRedeemResult {
+  agent: Agent;
+  apiKey: string;
+  orgId: string;
+}
+
+export interface ConnectWithInviteConfig {
+  hubUrl: string;
+  inviteToken: string;
+  agentName: string;
+  channelId?: string;
+  sync?: SyncConfig;
+  extractor?: ActivityExtractorConfig;
+  autoStart?: boolean;
+}
+
 // --- Channels ---
 
 export interface Channel {

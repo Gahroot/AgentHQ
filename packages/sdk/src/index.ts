@@ -1,5 +1,5 @@
 export { AgentHQClient } from './client';
-export { createHubTools } from './tools';
+export { createHubTools, createInviteTool } from './tools';
 export type { MCPToolDefinition } from './tools';
 export { ActivityExtractor } from './extractor';
 export { SyncManager } from './sync';

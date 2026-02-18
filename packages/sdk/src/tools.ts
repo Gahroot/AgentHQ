@@ -219,3 +219,29 @@ export function createHubTools(client: AgentHQClient): MCPToolDefinition[] {
     },
   ];
 }
+
+export function createInviteTool(): MCPToolDefinition {
+  return {
+    name: 'hub_connect',
+    description: 'Connect this agent to an AgentHQ hub using an invite token. The token format is AHQ-XXXXX-XXXX. You need the hub URL, invite token, and a name for this agent.',
+    parameters: {
+      type: 'object',
+      properties: {
+        hub_url: { type: 'string', description: 'The AgentHQ hub URL (e.g., https://api.agenthq.dev)' },
+        invite_token: { type: 'string', description: 'The invite token (format: AHQ-XXXXX-XXXX)' },
+        agent_name: { type: 'string', description: 'A name for this agent (e.g., "Claude - Nolan\'s Agent")' },
+      },
+      required: ['hub_url', 'invite_token', 'agent_name'],
+    },
+    execute: async (params: { hub_url: string; invite_token: string; agent_name: string }) => {
+      const result = await AgentHQClient.redeemInvite(params.hub_url, params.invite_token, params.agent_name);
+      return {
+        success: true,
+        message: `Successfully connected as "${result.agent.name}"`,
+        agent_id: result.agent.id,
+        org_id: result.orgId,
+        api_key: result.apiKey,
+      };
+    },
+  };
+}
