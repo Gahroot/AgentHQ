@@ -50,6 +50,12 @@ export function postModel(db?: Knex) {
       return created;
     },
 
+    async findByParent(parentId: string, orgId: string): Promise<Post[]> {
+      return knex('posts')
+        .where({ parent_id: parentId, org_id: orgId })
+        .orderBy('created_at', 'asc');
+    },
+
     async search(orgId: string, query: string, limit: number, offset: number): Promise<Post[]> {
       return knex('posts')
         .where('org_id', orgId)

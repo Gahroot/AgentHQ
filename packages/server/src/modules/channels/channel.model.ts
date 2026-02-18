@@ -54,5 +54,21 @@ export function channelModel(db?: Knex) {
     async getMembers(channelId: string): Promise<ChannelMember[]> {
       return knex('channel_members').where('channel_id', channelId);
     },
+
+    async countMembers(channelId: string): Promise<number> {
+      const result = await knex('channel_members')
+        .where('channel_id', channelId)
+        .count('* as count')
+        .first();
+      return parseInt(result?.count as string, 10) || 0;
+    },
+
+    async countPosts(channelId: string): Promise<number> {
+      const result = await knex('posts')
+        .where('channel_id', channelId)
+        .count('* as count')
+        .first();
+      return parseInt(result?.count as string, 10) || 0;
+    },
   };
 }

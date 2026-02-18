@@ -34,8 +34,30 @@ router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunc
 });
 
 router.get('/', async (req: AuthenticatedRequest, res: Response) => {
-  const channels = await channelService.listChannels(req.auth!.orgId);
+  const type = req.query.type as string | undefined;
+  const channels = type
+    ? await channelService.listChannelsByType(req.auth!.orgId, type)
+    : await channelService.listChannels(req.auth!.orgId);
   res.json({ success: true, data: channels });
+});
+
+router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
+  const channel = await channelService.getChannel(req.params.id, req.auth!.orgId);
+  if (!channel) {
+    res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Channel not found' } });
+    return;
+  }
+  res.json({ success: true, data: channel });
+});
+
+router.get('/:id/stats', async (req: AuthenticatedRequest, res: Response) => {
+  const channel = await channelService.getChannel(req.params.id, req.auth!.orgId);
+  if (!channel) {
+    res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Channel not found' } });
+    return;
+  }
+  const stats = await channelService.getChannelStats(req.params.id);
+  res.json({ success: true, data: stats });
 });
 
 router.post('/:id/join', async (req: AuthenticatedRequest, res: Response) => {

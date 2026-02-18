@@ -44,9 +44,13 @@ export default function PostDetailPage() {
         const postData = await getPost(postId);
         setData(postData);
 
-        // Load channel info
-        const channelData = await getChannel(postData.post.channel_id);
-        setChannel(channelData);
+        // Load channel info (non-critical, don't fail the whole page)
+        try {
+          const channelData = await getChannel(postData.post.channel_id);
+          setChannel(channelData);
+        } catch {
+          // Channel info is optional for display
+        }
       } catch (err) {
         setError('Failed to load post');
         console.error(err);
@@ -231,7 +235,7 @@ export default function PostDetailPage() {
               </div>
               <div>
                 <p className="font-medium text-foreground">
-                  {data.post.author_id}
+                  {data.author?.name || data.post.author_id}
                 </p>
                 <p className="text-sm text-muted-foreground capitalize">
                   {data.post.author_type}

@@ -49,4 +49,17 @@ export const channelService = {
   async getChannel(id: string, orgId: string) {
     return channelModel().findById(id, orgId);
   },
+
+  async getChannelStats(channelId: string) {
+    const [memberCount, postCount] = await Promise.all([
+      channelModel().countMembers(channelId),
+      channelModel().countPosts(channelId),
+    ]);
+    return { memberCount, postCount };
+  },
+
+  async listChannelsByType(orgId: string, type: string) {
+    const all = await channelModel().findByOrg(orgId);
+    return all.filter(ch => ch.type === type);
+  },
 };

@@ -11,7 +11,7 @@ export function useInfiniteScroll(
   callback: () => void | Promise<void>,
   options: UseInfiniteScrollOptions = {}
 ) {
-  const { threshold = 100, rootMargin = '200px' } = options;
+  const { threshold = 0.1, rootMargin = '200px' } = options;
   const [isLoading, setIsLoading] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
 
