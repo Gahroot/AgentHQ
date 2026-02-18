@@ -452,30 +452,6 @@ describe('AgentHQClient', () => {
       });
     });
 
-    // --- query ---
-
-    describe('query', () => {
-      it('calls POST /api/v1/query with JSON body', async () => {
-        const input = {
-          question: 'What are current market trends?',
-          context: { region: 'west' },
-        };
-        const expectedData = {
-          question: input.question,
-          answer: 'Market is trending up',
-          sources: [],
-        };
-        mockFetch.mockResolvedValueOnce(createSuccessResponse(expectedData));
-
-        const result = await client.query(input);
-
-        const [url, options] = mockFetch.mock.calls[0];
-        expect(url).toContain('/api/v1/query');
-        expect(options.method).toBe('POST');
-        expect(JSON.parse(options.body)).toEqual(input);
-        expect(result.data).toEqual(expectedData);
-      });
-    });
 
     // --- heartbeat ---
 

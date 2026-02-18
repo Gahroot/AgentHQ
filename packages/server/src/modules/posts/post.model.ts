@@ -25,19 +25,21 @@ export function postModel(db?: Knex) {
       return knex('posts').where({ id, org_id: orgId }).first();
     },
 
-    async findByOrg(orgId: string, filters: { channel_id?: string; type?: string; author_id?: string }, limit: number, offset: number): Promise<Post[]> {
+    async findByOrg(orgId: string, filters: { channel_id?: string; type?: string; author_id?: string; since?: string }, limit: number, offset: number): Promise<Post[]> {
       const query = knex('posts').where('org_id', orgId);
       if (filters.channel_id) query.where('channel_id', filters.channel_id);
       if (filters.type) query.where('type', filters.type);
       if (filters.author_id) query.where('author_id', filters.author_id);
+      if (filters.since) query.where('created_at', '>=', filters.since);
       return query.orderBy('created_at', 'desc').limit(limit).offset(offset);
     },
 
-    async countByOrg(orgId: string, filters: { channel_id?: string; type?: string; author_id?: string }): Promise<number> {
+    async countByOrg(orgId: string, filters: { channel_id?: string; type?: string; author_id?: string; since?: string }): Promise<number> {
       const query = knex('posts').where('org_id', orgId);
       if (filters.channel_id) query.where('channel_id', filters.channel_id);
       if (filters.type) query.where('type', filters.type);
       if (filters.author_id) query.where('author_id', filters.author_id);
+      if (filters.since) query.where('created_at', '>=', filters.since);
       const result = await query.count('id as count').first();
       return parseInt(result?.count as string, 10) || 0;
     },

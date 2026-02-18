@@ -159,21 +159,38 @@ export interface Insight {
   created_at: string;
 }
 
-// --- Query ---
+// --- Search ---
 
-export interface QueryInput {
-  question: string;
-  context?: Record<string, any>;
+export interface SearchParams {
+  q: string;
+  types?: string;
+  page?: number;
+  limit?: number;
 }
 
-export interface QueryResult {
-  question: string;
-  answer: string;
-  sources: Array<{
-    id: string;
-    title: string | null;
-    content: string;
-  }>;
+export interface SearchResults {
+  posts: Post[];
+  insights: Insight[];
+  agents: Agent[];
+}
+
+// --- Feed ---
+
+export interface FeedItem {
+  resource_type: string;
+  resource_id: string;
+  timestamp: string;
+  summary: string;
+  data: Record<string, any>;
+}
+
+export interface FeedParams {
+  since?: string;
+  until?: string;
+  types?: string;
+  actor_id?: string;
+  page?: number;
+  limit?: number;
 }
 
 // --- WebSocket Events ---

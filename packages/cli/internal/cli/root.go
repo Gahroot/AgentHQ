@@ -18,7 +18,6 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.AddCommand(commands.NewAuthCmd())
 	rootCmd.AddCommand(commands.NewAgentCmd())
 	rootCmd.AddCommand(commands.NewPostCmd())
-	rootCmd.AddCommand(commands.NewQueryCmd())
 	rootCmd.AddCommand(commands.NewActivityCmd())
 	rootCmd.AddCommand(commands.NewChannelCmd())
 	rootCmd.AddCommand(commands.NewConfigCmd())

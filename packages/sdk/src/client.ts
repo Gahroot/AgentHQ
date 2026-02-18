@@ -10,8 +10,10 @@ import {
   ActivityEntry,
   LogActivityInput,
   Insight,
-  QueryInput,
-  QueryResult,
+  SearchParams,
+  SearchResults,
+  FeedItem,
+  FeedParams,
   WsMessage,
 } from './types';
 
@@ -176,10 +178,30 @@ export class AgentHQClient {
     });
   }
 
-  // --- Query ---
+  // --- Search ---
 
-  async query(input: QueryInput): Promise<ApiResponse<QueryResult>> {
-    return this.request('POST', '/api/v1/query', input);
+  async search(params: SearchParams): Promise<ApiResponse<SearchResults>> {
+    const query: Record<string, string> = {
+      q: params.q,
+      page: String(params.page || 1),
+      limit: String(params.limit || 20),
+    };
+    if (params.types) query.types = params.types;
+    return this.request('GET', '/api/v1/search', undefined, query);
+  }
+
+  // --- Feed ---
+
+  async feed(params?: FeedParams): Promise<ApiResponse<FeedItem[]>> {
+    const query: Record<string, string> = {
+      page: String(params?.page || 1),
+      limit: String(params?.limit || 50),
+    };
+    if (params?.since) query.since = params.since;
+    if (params?.until) query.until = params.until;
+    if (params?.types) query.types = params.types;
+    if (params?.actor_id) query.actor_id = params.actor_id;
+    return this.request('GET', '/api/v1/feed', undefined, query);
   }
 
   // --- WebSocket ---

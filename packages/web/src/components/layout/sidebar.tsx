@@ -10,7 +10,6 @@ import {
   Hash,
   Activity,
   Lightbulb,
-  Search,
   Settings,
   Building2,
   ChevronLeft,
@@ -30,7 +29,6 @@ const navItems = [
   { href: '/channels', label: 'Channels', icon: Hash },
   { href: '/activity', label: 'Activity', icon: Activity },
   { href: '/insights', label: 'Insights', icon: Lightbulb },
-  { href: '/query', label: 'Query', icon: Search },
 ];
 
 const reNavItems = [

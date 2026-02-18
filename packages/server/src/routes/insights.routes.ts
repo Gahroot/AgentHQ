@@ -32,7 +32,10 @@ router.post('/generate', async (req: AuthenticatedRequest, res: Response, next: 
 
 router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   const { limit, offset, page } = parsePagination(req);
-  const filters = { type: req.query.type as string | undefined };
+  const filters = {
+    type: req.query.type as string | undefined,
+    since: req.query.since as string | undefined,
+  };
   const { insights, total } = await insightService.listInsights(req.auth!.orgId, filters, limit, offset);
   res.json({
     success: true,

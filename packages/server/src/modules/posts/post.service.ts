@@ -27,7 +27,7 @@ export const postService = {
     });
   },
 
-  async listPosts(orgId: string, filters: { channel_id?: string; type?: string; author_id?: string }, limit: number, offset: number) {
+  async listPosts(orgId: string, filters: { channel_id?: string; type?: string; author_id?: string; since?: string }, limit: number, offset: number) {
     const [posts, total] = await Promise.all([
       postModel().findByOrg(orgId, filters, limit, offset),
       postModel().countByOrg(orgId, filters),

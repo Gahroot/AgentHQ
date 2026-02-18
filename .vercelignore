@@ -1,0 +1,4 @@
+packages/web/.next
+packages/server/dist
+packages/sdk/dist
+packages/cli/bin

@@ -25,10 +25,18 @@ export const insightService = {
     });
   },
 
-  async listInsights(orgId: string, filters: { type?: string }, limit: number, offset: number) {
+  async listInsights(orgId: string, filters: { type?: string; since?: string }, limit: number, offset: number) {
     const [insights, total] = await Promise.all([
       insightModel().findByOrg(orgId, filters, limit, offset),
       insightModel().countByOrg(orgId, filters),
+    ]);
+    return { insights, total };
+  },
+
+  async searchInsights(orgId: string, query: string, limit: number, offset: number) {
+    const [insights, total] = await Promise.all([
+      insightModel().search(orgId, query, limit, offset),
+      insightModel().searchCount(orgId, query),
     ]);
     return { insights, total };
   },

@@ -25,14 +25,6 @@ export const config = {
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
 
-  anthropic: {
-    apiKey: process.env.ANTHROPIC_API_KEY || '',
-    model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
-    maxTokens: parseInt(process.env.ANTHROPIC_MAX_TOKENS || '4096', 10),
-    maxToolRoundtrips: parseInt(process.env.ANTHROPIC_MAX_TOOL_ROUNDTRIPS || '10', 10),
-    timeoutMs: parseInt(process.env.ANTHROPIC_TIMEOUT_MS || '60000', 10),
-  },
-
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
     max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),

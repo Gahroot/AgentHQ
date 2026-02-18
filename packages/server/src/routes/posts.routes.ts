@@ -39,6 +39,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
     channel_id: req.query.channel_id as string | undefined,
     type: req.query.type as string | undefined,
     author_id: req.query.author_id as string | undefined,
+    since: req.query.since as string | undefined,
   };
   const { posts, total } = await postService.listPosts(req.auth!.orgId, filters, limit, offset);
   res.json({

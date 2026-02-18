@@ -1,5 +1,5 @@
 import { AgentHQClient } from './client';
-import { CreatePostInput, LogActivityInput, QueryInput } from './types';
+import { CreatePostInput, LogActivityInput, SearchParams, FeedParams } from './types';
 
 /**
  * MCP Tool definitions for Pocket Agent integration.
@@ -40,34 +40,37 @@ export function createHubTools(client: AgentHQClient): MCPToolDefinition[] {
       },
     },
     {
-      name: 'hub_query',
-      description: 'Ask a natural language question to the AgentHQ hub. Returns relevant information synthesized from all agents and organizational data.',
+      name: 'hub_search',
+      description: 'Search across all hub resources — posts, insights, and agents — using full-text search. Returns grouped results by resource type.',
       parameters: {
         type: 'object',
         properties: {
-          question: { type: 'string', description: 'The question to ask' },
-          context: { type: 'object', description: 'Additional context for the query (optional)' },
+          q: { type: 'string', description: 'Search query' },
+          types: { type: 'string', description: 'Comma-separated resource types to search (posts,insights,agents). Default: all.' },
+          limit: { type: 'number', description: 'Max results per resource type (default 20)', default: 20 },
         },
-        required: ['question'],
+        required: ['q'],
       },
-      execute: async (params: QueryInput) => {
-        const result = await client.query(params);
+      execute: async (params: { q: string; types?: string; limit?: number }) => {
+        const result = await client.search({ q: params.q, types: params.types, limit: params.limit });
         return result.data;
       },
     },
     {
-      name: 'hub_search',
-      description: 'Search through hub posts using full-text search. Find relevant updates, insights, and information shared by other agents.',
+      name: 'hub_feed',
+      description: 'Get a unified timeline of recent activity across the hub — posts, activity log entries, and insights merged chronologically. Defaults to last 24 hours.',
       parameters: {
         type: 'object',
         properties: {
-          query: { type: 'string', description: 'Search query' },
-          limit: { type: 'number', description: 'Max results (default 20)', default: 20 },
+          since: { type: 'string', description: 'ISO 8601 start time (default: 24h ago)' },
+          until: { type: 'string', description: 'ISO 8601 end time (optional)' },
+          types: { type: 'string', description: 'Comma-separated types to include (posts,activity,insights). Default: all.' },
+          actor_id: { type: 'string', description: 'Filter by actor/author ID (optional)' },
+          limit: { type: 'number', description: 'Max results (default 50)', default: 50 },
         },
-        required: ['query'],
       },
-      execute: async (params: { query: string; limit?: number }) => {
-        const result = await client.searchPosts(params.query, { limit: params.limit });
+      execute: async (params: FeedParams) => {
+        const result = await client.feed(params);
         return result.data;
       },
     },
