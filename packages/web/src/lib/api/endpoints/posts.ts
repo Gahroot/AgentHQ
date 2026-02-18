@@ -55,14 +55,17 @@ export async function searchPosts(
 /**
  * Get a single post by ID with thread and author info
  */
+export interface PostAuthor {
+  id: string;
+  name: string;
+  type: 'agent' | 'user';
+}
+
 export interface PostWithThread {
   post: Post;
   thread: Post[];
-  author: {
-    id: string;
-    name: string;
-    type: 'agent' | 'user';
-  };
+  authors: Record<string, PostAuthor>;
+  author: PostAuthor;
 }
 
 export async function getPost(id: string): Promise<PostWithThread> {
@@ -83,6 +86,18 @@ export async function createPost(input: CreatePostInput): Promise<Post> {
  */
 export async function editPost(postId: string, input: { title?: string; content?: string }): Promise<Post> {
   const response = await apiPatch<Post>(`/posts/${postId}`, input);
+  return response.data!;
+}
+
+/**
+ * Create a reply to an existing post
+ */
+export async function createReply(parentId: string, channelId: string, content: string): Promise<Post> {
+  const response = await apiPost<Post>('/posts', {
+    channel_id: channelId,
+    content,
+    parent_id: parentId,
+  });
   return response.data!;
 }
 

@@ -4,6 +4,7 @@ import { mentionService } from '../mentions/mention.service';
 import { notificationService } from '../notifications/notification.service';
 import { generateId } from '../../utils/id';
 import { logger } from '../../middleware/logger';
+import { getDb } from '../../config/database';
 
 export const postService = {
   async createPost(orgId: string, data: {
@@ -39,6 +40,15 @@ export const postService = {
         notificationService.notifyReply(orgId, parentPost.author_id, parentPost.author_type, data.author_id, data.author_type, post.id)
           .catch(err => logger.error({ err }, 'Failed to send reply notification'));
       }
+
+      // Increment reply_count on the root post
+      const rootId = await this.findRootPostId(data.parent_id, orgId);
+      const rootPost = await postModel().findById(rootId, orgId);
+      if (rootPost) {
+        const metadata = rootPost.metadata || {};
+        metadata.reply_count = (metadata.reply_count || 0) + 1;
+        await postModel().update(rootId, orgId, { metadata } as any);
+      }
     }
 
     return post;
@@ -56,23 +66,51 @@ export const postService = {
     const post = await postModel().findById(id, orgId);
     if (!post) return null;
 
-    const thread = await postModel().findByParent(id, orgId);
+    const thread = await postModel().findThreadRecursive(id, orgId);
 
-    let authorName = post.author_id;
-    if (post.author_type === 'agent') {
-      const agent = await agentModel().findById(post.author_id, orgId);
-      if (agent) authorName = agent.name;
+    // Build authors map from all posts in the thread
+    const allPosts = [post, ...thread];
+    const agentIds = [...new Set(allPosts.filter(p => p.author_type === 'agent').map(p => p.author_id))];
+    const userIds = [...new Set(allPosts.filter(p => p.author_type === 'user').map(p => p.author_id))];
+
+    const authors: Record<string, { id: string; name: string; type: 'agent' | 'user' }> = {};
+
+    if (agentIds.length > 0) {
+      const db = getDb();
+      const agentRows = await db('agents').whereIn('id', agentIds).where('org_id', orgId);
+      for (const agent of agentRows) {
+        authors[agent.id] = { id: agent.id, name: agent.name, type: 'agent' };
+      }
+    }
+
+    if (userIds.length > 0) {
+      const db = getDb();
+      const userRows = await db('users').whereIn('id', userIds).select('id', 'name');
+      for (const user of userRows) {
+        authors[user.id] = { id: user.id, name: user.name, type: 'user' };
+      }
     }
 
     return {
       post,
       thread,
+      authors,
       author: {
         id: post.author_id,
-        name: authorName,
+        name: authors[post.author_id]?.name || post.author_id,
         type: post.author_type as 'agent' | 'user',
       },
     };
+  },
+
+  async findRootPostId(postId: string, orgId: string): Promise<string> {
+    let currentId = postId;
+    for (let i = 0; i < 50; i++) { // safety limit
+      const post = await postModel().findById(currentId, orgId);
+      if (!post || !post.parent_id) return currentId;
+      currentId = post.parent_id;
+    }
+    return currentId;
   },
 
   async searchPosts(orgId: string, query: string, limit: number, offset: number) {

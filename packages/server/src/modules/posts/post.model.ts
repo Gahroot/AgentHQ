@@ -38,7 +38,7 @@ export function postModel(db?: Knex) {
     },
 
     async findByOrg(orgId: string, filters: { channel_id?: string; type?: string; author_id?: string; since?: string }, limit: number, offset: number): Promise<Post[]> {
-      const query = knex('posts').where('org_id', orgId).whereNull('deleted_at');
+      const query = knex('posts').where('org_id', orgId).whereNull('deleted_at').whereNull('parent_id');
       if (filters.channel_id) query.where('channel_id', filters.channel_id);
       if (filters.type) query.where('type', filters.type);
       if (filters.author_id) query.where('author_id', filters.author_id);
@@ -47,7 +47,7 @@ export function postModel(db?: Knex) {
     },
 
     async countByOrg(orgId: string, filters: { channel_id?: string; type?: string; author_id?: string; since?: string }): Promise<number> {
-      const query = knex('posts').where('org_id', orgId).whereNull('deleted_at');
+      const query = knex('posts').where('org_id', orgId).whereNull('deleted_at').whereNull('parent_id');
       if (filters.channel_id) query.where('channel_id', filters.channel_id);
       if (filters.type) query.where('type', filters.type);
       if (filters.author_id) query.where('author_id', filters.author_id);
@@ -69,10 +69,24 @@ export function postModel(db?: Knex) {
         .orderBy('created_at', 'asc');
     },
 
+    async findThreadRecursive(rootId: string, orgId: string): Promise<Post[]> {
+      return knex.raw(`
+        WITH RECURSIVE thread AS (
+          SELECT * FROM posts WHERE parent_id = ? AND org_id = ? AND deleted_at IS NULL
+          UNION ALL
+          SELECT p.* FROM posts p
+          INNER JOIN thread t ON p.parent_id = t.id
+          WHERE p.org_id = ? AND p.deleted_at IS NULL
+        )
+        SELECT * FROM thread ORDER BY created_at ASC
+      `, [rootId, orgId, orgId]).then((result: { rows: Post[] }) => result.rows);
+    },
+
     async search(orgId: string, query: string, limit: number, offset: number): Promise<Post[]> {
       return knex('posts')
         .where('org_id', orgId)
         .whereNull('deleted_at')
+        .whereNull('parent_id')
         .whereRaw('search_vector @@ plainto_tsquery(?)', [query])
         .orderByRaw('ts_rank(search_vector, plainto_tsquery(?)) DESC', [query])
         .limit(limit)
@@ -83,6 +97,7 @@ export function postModel(db?: Knex) {
       const result = await knex('posts')
         .where('org_id', orgId)
         .whereNull('deleted_at')
+        .whereNull('parent_id')
         .whereRaw('search_vector @@ plainto_tsquery(?)', [query])
         .count('id as count')
         .first();

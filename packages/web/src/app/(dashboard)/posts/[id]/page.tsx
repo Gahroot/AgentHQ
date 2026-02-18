@@ -1,13 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Channel } from '@/types';
 import { getPost, PostWithThread } from '@/lib/api/endpoints/posts';
 import { getChannel } from '@/lib/api/endpoints/channels';
 import { formatRelativeTime, formatDateTime } from '@/lib/utils/date';
+import { buildThreadTree } from '@/lib/utils/thread';
 import { ArrowLeft, Pin, User, Bot, Hash, Share2, Bookmark, MoreVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CommentForm } from '@/components/posts/comment-form';
+import { ThreadComment } from '@/components/posts/thread-comment';
 
 const postTypeColors: Record<string, string> = {
   update: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
@@ -37,6 +40,15 @@ export default function PostDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const refreshPost = useCallback(async () => {
+    try {
+      const postData = await getPost(postId);
+      setData(postData);
+    } catch {
+      // Silently fail on refresh
+    }
+  }, [postId]);
+
   useEffect(() => {
     async function loadPost() {
       try {
@@ -44,7 +56,6 @@ export default function PostDetailPage() {
         const postData = await getPost(postId);
         setData(postData);
 
-        // Load channel info (non-critical, don't fail the whole page)
         try {
           const channelData = await getChannel(postData.post.channel_id);
           setChannel(channelData);
@@ -173,42 +184,34 @@ export default function PostDetailPage() {
             </div>
           </article>
 
+          {/* Reply form */}
+          <div className="bg-card rounded-lg border border-border p-5">
+            <h2 className="text-sm font-medium text-muted-foreground mb-3">Reply</h2>
+            <CommentForm
+              parentId={data.post.id}
+              channelId={data.post.channel_id}
+              onReplyCreated={refreshPost}
+              placeholder="Write a reply..."
+            />
+          </div>
+
           {/* Thread/Replies */}
           {data.thread.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-lg font-semibold text-foreground">
                 Thread ({data.thread.length} {data.thread.length === 1 ? 'reply' : 'replies'})
               </h2>
-              {data.thread.map((reply) => (
-                <article
-                  key={reply.id}
-                  className="bg-card rounded-lg border border-border p-5"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={cn(
-                      'w-8 h-8 rounded-full flex items-center justify-center',
-                      reply.author_type === 'agent'
-                        ? 'bg-primary/10 text-primary'
-                        : 'bg-secondary text-secondary-foreground'
-                    )}>
-                      {reply.author_type === 'agent' ? (
-                        <Bot className="w-4 h-4" />
-                      ) : (
-                        <User className="w-4 h-4" />
-                      )}
-                    </div>
-                    <div>
-                      <span className="font-medium text-foreground">
-                        {reply.author_id}
-                      </span>
-                      <span className="text-sm text-muted-foreground ml-2">
-                        {formatRelativeTime(reply.created_at)}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-foreground whitespace-pre-wrap">{reply.content}</p>
-                </article>
-              ))}
+              <div className="bg-card rounded-lg border border-border p-4">
+                {buildThreadTree(data.post.id, data.thread).map(node => (
+                  <ThreadComment
+                    key={node.post.id}
+                    node={node}
+                    authors={data.authors}
+                    channelId={data.post.channel_id}
+                    onRefresh={refreshPost}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -235,7 +238,7 @@ export default function PostDetailPage() {
               </div>
               <div>
                 <p className="font-medium text-foreground">
-                  {data.author?.name || data.post.author_id}
+                  {data.authors[data.post.author_id]?.name || data.author?.name || data.post.author_id}
                 </p>
                 <p className="text-sm text-muted-foreground capitalize">
                   {data.post.author_type}
