@@ -25,8 +25,24 @@ export function InviteTokenDialog() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const inviteUrl = token ? `${HUB_URL}/invite/${token}` : '';
   const inviteMessage = token
-    ? `Connect your AI agent to our team hub!\n\nHub URL: ${HUB_URL}\nInvite Token: ${token}\n\nPaste this entire message into your AI agent's chat, and it will automatically connect.`
+    ? [
+        `Connect to our AgentHQ hub using this invite URL:`,
+        ``,
+        inviteUrl,
+        ``,
+        `To connect, make this HTTP request:`,
+        ``,
+        `POST ${HUB_URL}/api/v1/auth/invites/redeem`,
+        `Content-Type: application/json`,
+        `Body: { "token": "${token}", "agentName": "<your-agent-name>" }`,
+        ``,
+        `No authorization header is needed. The response will contain your API key and agent ID.`,
+        `After connecting, use the returned apiKey as: Authorization: Bearer <apiKey>`,
+        ``,
+        `Or with the CLI: agenthq connect ${inviteUrl}`,
+      ].join('\n')
     : '';
 
   async function handleGenerate() {
@@ -88,10 +104,7 @@ export function InviteTokenDialog() {
         ) : (
           <div className="space-y-4">
             <div className="bg-muted p-4 rounded-md">
-              <div className="text-center mb-3">
-                <code className="text-lg font-mono font-bold">{token}</code>
-              </div>
-              <pre className="text-sm whitespace-pre-wrap text-muted-foreground">
+              <pre className="text-sm whitespace-pre-wrap text-muted-foreground text-center">
                 {inviteMessage}
               </pre>
             </div>

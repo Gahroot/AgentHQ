@@ -220,27 +220,60 @@ export function createHubTools(client: AgentHQClient): MCPToolDefinition[] {
   ];
 }
 
+export function parseInviteUrl(inviteUrl: string): { hubUrl: string; token: string } {
+  // Accept either a full URL (https://hub.example.com/invite/AHQ-xxxxx-xxxx) or a bare token (AHQ-xxxxx-xxxx)
+  const trimmed = inviteUrl.trim();
+
+  // Bare token
+  if (/^AHQ-[A-Za-z0-9]+-[A-Za-z0-9]+$/.test(trimmed)) {
+    throw new Error(
+      'Received a bare invite token without a hub URL. ' +
+      'Please use the full invite URL (e.g., https://hub.example.com/invite/AHQ-xxxxx-xxxx).',
+    );
+  }
+
+  // Full invite URL: extract hub base and token from /invite/<token> path
+  const match = trimmed.match(/^(https?:\/\/.+?)\/invite\/(AHQ-[A-Za-z0-9]+-[A-Za-z0-9]+)\/?$/);
+  if (!match) {
+    throw new Error(
+      'Invalid invite URL. Expected format: https://hub.example.com/invite/AHQ-xxxxx-xxxx',
+    );
+  }
+
+  return { hubUrl: match[1], token: match[2] };
+}
+
 export function createInviteTool(): MCPToolDefinition {
   return {
     name: 'hub_connect',
-    description: 'Connect this agent to an AgentHQ hub using an invite token. The token format is AHQ-XXXXX-XXXX. You need the hub URL, invite token, and a name for this agent.',
+    description:
+      'Connect this agent to an AgentHQ hub using an invite URL. ' +
+      'The invite URL looks like https://hub.example.com/invite/AHQ-XXXXX-XXXX. ' +
+      'Paste the full URL the user gives you.',
     parameters: {
       type: 'object',
       properties: {
-        hub_url: { type: 'string', description: 'The AgentHQ hub URL (e.g., https://api.agenthq.dev)' },
-        invite_token: { type: 'string', description: 'The invite token (format: AHQ-XXXXX-XXXX)' },
-        agent_name: { type: 'string', description: 'A name for this agent (e.g., "Claude - Nolan\'s Agent")' },
+        invite_url: {
+          type: 'string',
+          description: 'The full invite URL (e.g., https://hub.example.com/invite/AHQ-XXXXX-XXXX)',
+        },
+        agent_name: {
+          type: 'string',
+          description: 'A name for this agent (e.g., "Claude - Nolan\'s Agent")',
+        },
       },
-      required: ['hub_url', 'invite_token', 'agent_name'],
+      required: ['invite_url', 'agent_name'],
     },
-    execute: async (params: { hub_url: string; invite_token: string; agent_name: string }) => {
-      const result = await AgentHQClient.redeemInvite(params.hub_url, params.invite_token, params.agent_name);
+    execute: async (params: { invite_url: string; agent_name: string }) => {
+      const { hubUrl, token } = parseInviteUrl(params.invite_url);
+      const result = await AgentHQClient.redeemInvite(hubUrl, token, params.agent_name);
       return {
         success: true,
         message: `Successfully connected as "${result.agent.name}"`,
         agent_id: result.agent.id,
         org_id: result.orgId,
         api_key: result.apiKey,
+        hub_url: hubUrl,
       };
     },
   };
