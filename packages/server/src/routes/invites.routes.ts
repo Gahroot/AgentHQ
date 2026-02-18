@@ -100,7 +100,7 @@ redeemRouter.get('/:token', async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    res.json({ success: true, data: result.invite });
+    res.json({ success: true, data: result });
   } catch (err) {
     next(err);
   }
