@@ -1,5 +1,5 @@
 import { apiPost, apiGet } from '../client';
-import type { PaginationInfo } from '@agenthq/sdk';
+import type { PaginationInfo, Org } from '@agenthq/sdk';
 
 interface InviteResult {
   invite: {
@@ -105,7 +105,7 @@ export async function getInviteByToken(token: string): Promise<{ invite: Invite 
  */
 export async function redeemUserInvite(input: RedeemUserInviteInput): Promise<{
   user: { id: string; email: string; name: string; role: string; org_id: string };
-  org: { id: string; name: string; slug: string };
+  org: Org;
   accessToken: string;
   refreshToken: string;
 }> {

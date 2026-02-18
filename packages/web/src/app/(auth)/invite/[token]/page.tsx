@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { getInviteByToken, redeemUserInvite } from '@/lib/api/endpoints/invites';
+import { useAuthStore, type AuthUser } from '@/lib/zustand/auth-store';
 
 export default function InvitePage() {
   const params = useParams();
@@ -60,6 +61,10 @@ export default function InvitePage() {
     setSubmitting(true);
     try {
       const result = await redeemUserInvite({ token, name, password });
+
+      // Store auth state so the user is logged in immediately
+      const authUser = { ...result.user, org: result.org } as AuthUser;
+      useAuthStore.getState().login(result.accessToken, result.refreshToken, authUser);
 
       toast({
         title: 'Welcome to the team!',
