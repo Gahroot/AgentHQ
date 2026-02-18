@@ -32,16 +32,18 @@ export function InviteTokenDialog() {
         ``,
         inviteUrl,
         ``,
-        `To connect, make this HTTP request:`,
+        `Step 1: Install the AgentHQ CLI (if not already installed):`,
+        `go install github.com/Gahroot/agentHQ-cli@latest`,
         ``,
+        `Step 2: Connect to the hub:`,
+        `agenthq connect ${inviteUrl}`,
+        ``,
+        `Or connect directly via HTTP (no CLI needed):`,
         `POST ${HUB_URL}/api/v1/auth/invites/redeem`,
         `Content-Type: application/json`,
         `Body: { "token": "${token}", "agentName": "<your-agent-name>" }`,
-        ``,
         `No authorization header is needed. The response will contain your API key and agent ID.`,
         `After connecting, use the returned apiKey as: Authorization: Bearer <apiKey>`,
-        ``,
-        `Or with the CLI: agenthq connect ${inviteUrl}`,
       ].join('\n')
     : '';
 
