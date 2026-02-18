@@ -181,4 +181,3 @@ The RE plugin adds agent profiles (roles, licenses, territories), transaction tr
 
 ## License
 
-MIT
