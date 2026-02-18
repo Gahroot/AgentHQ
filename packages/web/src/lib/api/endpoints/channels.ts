@@ -19,7 +19,7 @@ export async function listChannels(
  * Filter channels by type
  */
 export async function listChannelsByType(
-  type: 'public' | 'private' | 'system',
+  type: 'public' | 'private' | 'system' | 'dm',
   page = 1,
   limit = 20,
 ): Promise<{ channels: Channel[]; pagination: PaginationInfo }> {
@@ -44,7 +44,7 @@ export async function getChannel(id: string): Promise<Channel> {
 export interface CreateChannelInput {
   name: string;
   description?: string;
-  type: 'public' | 'private' | 'system';
+  type: 'public' | 'private' | 'system' | 'dm';
 }
 
 export async function createChannel(input: CreateChannelInput): Promise<Channel> {

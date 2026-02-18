@@ -10,6 +10,9 @@ import feedRoutes from './feed.routes';
 import orgRoutes from './org.routes';
 import reRoutes from '../verticals/real-estate/re.routes';
 import integrationRoutes from '../verticals/real-estate/integrations/integration.routes';
+import notificationRoutes from './notifications.routes';
+import dmRoutes from './dm.routes';
+import taskRoutes from './tasks.routes';
 import { inviteRoutes, redeemRouter } from './invites.routes';
 import { authMiddleware } from '../auth/middleware';
 import { tenantMiddleware } from '../middleware/tenant';
@@ -32,5 +35,8 @@ router.use('/feed', authMiddleware, tenantMiddleware, feedRoutes);
 router.use('/org', authMiddleware, tenantMiddleware, orgRoutes);
 router.use('/re', authMiddleware, tenantMiddleware, reRoutes);
 router.use('/integrations', authMiddleware, tenantMiddleware, integrationRoutes);
+router.use('/notifications', authMiddleware, tenantMiddleware, notificationRoutes);
+router.use('/dm', authMiddleware, tenantMiddleware, dmRoutes);
+router.use('/tasks', authMiddleware, tenantMiddleware, taskRoutes);
 
 export default router;

@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { ConnectionState } from '@/lib/websocket';
-import { Post, ActivityEntry, Insight } from '@/types';
+import { Post, ActivityEntry, Insight, Notification, Task } from '@/types';
 
 // Agent status update type
 interface AgentStatusUpdate {
@@ -32,6 +32,8 @@ interface WebSocketState {
   agentStatusUpdates: Record<string, AgentStatusUpdate>;
   recentActivities: ActivityEntry[];
   recentInsights: Insight[];
+  recentNotifications: Notification[];
+  recentTasks: Task[];
 
   // Actions
   setConnectionState: (state: ConnectionState) => void;
@@ -40,9 +42,16 @@ interface WebSocketState {
 
   // Real-time update handlers
   handleNewPost: (post: Post) => void;
+  handlePostUpdated: (post: Post) => void;
+  handlePostDeleted: (postId: string) => void;
   handleAgentStatus: (agentId: string, status: string) => void;
   handleNewActivity: (activity: ActivityEntry) => void;
   handleNewInsight: (insight: Insight) => void;
+  handleReactionNew: (data: { postId: string }) => void;
+  handleReactionRemoved: (data: { postId: string }) => void;
+  handleNewNotification: (notification: Notification) => void;
+  handleTaskNew: (task: Task) => void;
+  handleTaskUpdated: (task: Task) => void;
 
   // Clear cache
   clearCache: () => void;
@@ -64,6 +73,8 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   agentStatusUpdates: {},
   recentActivities: [],
   recentInsights: [],
+  recentNotifications: [],
+  recentTasks: [],
 
   // Connection state actions
   setConnectionState: (state: ConnectionState) => {
@@ -136,6 +147,64 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
     });
   },
 
+  handlePostUpdated: (post: Post) => {
+    const { recentPosts } = get();
+    set({
+      recentPosts: recentPosts.map((entry) =>
+        entry.post.id === post.id
+          ? { ...entry, post, receivedAt: new Date().toISOString() }
+          : entry
+      ),
+    });
+  },
+
+  handlePostDeleted: (postId: string) => {
+    const { recentPosts } = get();
+    set({
+      recentPosts: recentPosts.filter((entry) => entry.post.id !== postId),
+    });
+  },
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleReactionNew: (_data: { postId: string }) => {
+    // Reaction events are handled by individual components that refetch
+  },
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleReactionRemoved: (_data: { postId: string }) => {
+    // Reaction events are handled by individual components that refetch
+  },
+
+  handleNewNotification: (notification: Notification) => {
+    const { recentNotifications } = get();
+    // Add to beginning, keep only last 50
+    set({
+      recentNotifications: [notification, ...recentNotifications].slice(0, 50),
+    });
+  },
+
+  handleTaskNew: (task: Task) => {
+    const { recentTasks } = get();
+    // Add to beginning, keep only last 50
+    set({
+      recentTasks: [task, ...recentTasks].slice(0, 50),
+    });
+  },
+
+  handleTaskUpdated: (task: Task) => {
+    const { recentTasks } = get();
+    const exists = recentTasks.some((t) => t.id === task.id);
+    if (exists) {
+      set({
+        recentTasks: recentTasks.map((t) => (t.id === task.id ? task : t)),
+      });
+    } else {
+      set({
+        recentTasks: [task, ...recentTasks].slice(0, 50),
+      });
+    }
+  },
+
   // Clear cache
   clearCache: () => {
     set({
@@ -143,6 +212,8 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
       agentStatusUpdates: {},
       recentActivities: [],
       recentInsights: [],
+      recentNotifications: [],
+      recentTasks: [],
     });
   },
 

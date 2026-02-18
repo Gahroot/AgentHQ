@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, Menu, Search, Settings, LogOut, User, Zap } from 'lucide-react';
+import { Menu, Search, Settings, LogOut, User, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ConnectionStatus } from '@/components/websocket';
+import { NotificationBell } from '@/components/notifications/notification-bell';
 import { useTheme } from 'next-themes';
 import { useAuthStore } from '@/lib/zustand/auth-store';
 import { logout } from '@/lib/api/endpoints/auth';
@@ -97,10 +98,9 @@ export function Header({ onMobileMenuOpen }: HeaderProps) {
         </div>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="mr-2">
-          <Bell className="h-5 w-5" />
-          <span className="sr-only">Notifications</span>
-        </Button>
+        <div className="mr-2">
+          <NotificationBell />
+        </div>
 
         {/* Theme toggle */}
         <Button

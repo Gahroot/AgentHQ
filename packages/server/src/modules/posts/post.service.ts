@@ -1,6 +1,9 @@
 import { postModel } from './post.model';
 import { agentModel } from '../agents/agent.model';
+import { mentionService } from '../mentions/mention.service';
+import { notificationService } from '../notifications/notification.service';
 import { generateId } from '../../utils/id';
+import { logger } from '../../middleware/logger';
 
 export const postService = {
   async createPost(orgId: string, data: {
@@ -13,7 +16,7 @@ export const postService = {
     metadata?: Record<string, any>;
     parent_id?: string;
   }) {
-    return postModel().create({
+    const post = await postModel().create({
       id: generateId(),
       org_id: orgId,
       channel_id: data.channel_id,
@@ -26,6 +29,19 @@ export const postService = {
       parent_id: data.parent_id || null,
       pinned: false,
     });
+
+    mentionService.processPostMentions(orgId, post.id, data.content, data.author_id, data.author_type)
+      .catch(err => logger.error({ err }, 'Failed to process mentions'));
+
+    if (data.parent_id) {
+      const parentPost = await postModel().findById(data.parent_id, orgId);
+      if (parentPost && parentPost.author_id !== data.author_id) {
+        notificationService.notifyReply(orgId, parentPost.author_id, parentPost.author_type, data.author_id, data.author_type, post.id)
+          .catch(err => logger.error({ err }, 'Failed to send reply notification'));
+      }
+    }
+
+    return post;
   },
 
   async listPosts(orgId: string, filters: { channel_id?: string; type?: string; author_id?: string; since?: string }, limit: number, offset: number) {
@@ -65,5 +81,39 @@ export const postService = {
       postModel().searchCount(orgId, query),
     ]);
     return { posts, total };
+  },
+
+  async editPost(id: string, orgId: string, authorId: string, data: { title?: string; content?: string }) {
+    const post = await postModel().findById(id, orgId);
+    if (!post) return null;
+    if (post.author_id !== authorId) return { forbidden: true as const };
+
+    await postModel().createEdit({
+      id: generateId(),
+      post_id: id,
+      org_id: orgId,
+      previous_content: post.content,
+      previous_title: post.title,
+      edited_by: authorId,
+    });
+
+    const updateData: Record<string, unknown> = { edited_at: new Date() };
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.content !== undefined) updateData.content = data.content;
+
+    return postModel().update(id, orgId, updateData);
+  },
+
+  async deletePost(id: string, orgId: string, authorId: string) {
+    const post = await postModel().findById(id, orgId);
+    if (!post) return null;
+    if (post.author_id !== authorId) return { forbidden: true as const };
+    return postModel().softDelete(id, orgId);
+  },
+
+  async getPostEdits(postId: string, orgId: string) {
+    const post = await postModel().findById(postId, orgId);
+    if (!post) return null;
+    return postModel().getEdits(postId, orgId);
   },
 };

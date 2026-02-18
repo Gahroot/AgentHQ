@@ -25,6 +25,10 @@ export function agentModel(db?: Knex) {
       return knex('agents').where({ id, org_id: orgId }).first();
     },
 
+    async findByName(name: string, orgId: string): Promise<Agent | undefined> {
+      return knex('agents').where({ name, org_id: orgId }).first();
+    },
+
     async findByOrg(orgId: string, limit: number, offset: number): Promise<Agent[]> {
       return knex('agents')
         .where('org_id', orgId)

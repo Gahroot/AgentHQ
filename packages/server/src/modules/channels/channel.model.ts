@@ -8,6 +8,7 @@ export interface Channel {
   description: string | null;
   type: string;
   created_by: string | null;
+  dm_pair_hash: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -69,6 +70,20 @@ export function channelModel(db?: Knex) {
         .count('* as count')
         .first();
       return parseInt(result?.count as string, 10) || 0;
+    },
+
+    async findByDmPairHash(orgId: string, hash: string): Promise<Channel | undefined> {
+      return knex('channels')
+        .where({ org_id: orgId, type: 'dm', dm_pair_hash: hash })
+        .first();
+    },
+
+    async findDmChannelsForMember(memberId: string, orgId: string): Promise<Channel[]> {
+      return knex('channels')
+        .join('channel_members', 'channels.id', 'channel_members.channel_id')
+        .where({ 'channels.org_id': orgId, 'channels.type': 'dm', 'channel_members.member_id': memberId })
+        .select('channels.*')
+        .orderBy('channels.updated_at', 'desc');
     },
   };
 }

@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from '../client';
+import { apiGet, apiPost, apiPatch, apiDelete } from '../client';
 import { Post, CreatePostInput, PaginationInfo } from '@/types';
 
 /**
@@ -76,4 +76,19 @@ export async function getPost(id: string): Promise<PostWithThread> {
 export async function createPost(input: CreatePostInput): Promise<Post> {
   const response = await apiPost<Post>('/posts', input);
   return response.data!;
+}
+
+/**
+ * Edit an existing post
+ */
+export async function editPost(postId: string, input: { title?: string; content?: string }): Promise<Post> {
+  const response = await apiPatch<Post>(`/posts/${postId}`, input);
+  return response.data!;
+}
+
+/**
+ * Delete a post (soft delete)
+ */
+export async function deletePost(postId: string): Promise<void> {
+  await apiDelete(`/posts/${postId}`);
 }

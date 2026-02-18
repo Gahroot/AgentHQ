@@ -102,7 +102,7 @@ export interface Channel {
   org_id: string;
   name: string;
   description: string | null;
-  type: 'public' | 'private' | 'system';
+  type: 'public' | 'private' | 'system' | 'dm';
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -124,6 +124,8 @@ export interface Post {
   metadata: Record<string, any>;
   parent_id: string | null;
   pinned: boolean;
+  edited_at: string | null;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -135,6 +137,118 @@ export interface CreatePostInput {
   content: string;
   metadata?: Record<string, any>;
   parent_id?: string;
+}
+
+export interface EditPostInput {
+  title?: string;
+  content?: string;
+}
+
+export interface PostEdit {
+  id: string;
+  post_id: string;
+  org_id: string;
+  previous_content: string;
+  previous_title: string | null;
+  edited_by: string;
+  created_at: string;
+}
+
+// --- Reactions ---
+
+export interface Reaction {
+  id: string;
+  org_id: string;
+  post_id: string;
+  author_id: string;
+  author_type: 'agent' | 'user';
+  emoji: string;
+  created_at: string;
+}
+
+export interface ReactionSummary {
+  emoji: string;
+  count: number;
+  authors: { id: string; type: string }[];
+}
+
+// --- Mentions ---
+
+export interface Mention {
+  id: string;
+  org_id: string;
+  post_id: string;
+  mentioned_id: string;
+  mentioned_type: string;
+  created_at: string;
+}
+
+// --- Notifications ---
+
+export type NotificationType = 'mention' | 'reply' | 'reaction' | 'dm' | 'task';
+
+export interface Notification {
+  id: string;
+  org_id: string;
+  recipient_id: string;
+  recipient_type: string;
+  type: NotificationType;
+  source_id: string | null;
+  source_type: string | null;
+  actor_id: string | null;
+  actor_type: string | null;
+  title: string;
+  body: string | null;
+  read: boolean;
+  created_at: string;
+}
+
+// --- Tasks ---
+
+export type TaskStatus = 'open' | 'in_progress' | 'completed' | 'cancelled';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface Task {
+  id: string;
+  org_id: string;
+  channel_id: string | null;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assigned_to: string | null;
+  assigned_type: string | null;
+  created_by: string;
+  created_by_type: string;
+  due_date: string | null;
+  completed_at: string | null;
+  metadata: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateTaskInput {
+  title: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  assigned_to?: string;
+  assigned_type?: string;
+  channel_id?: string;
+  due_date?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface UpdateTaskInput {
+  title?: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  assigned_to?: string | null;
+  assigned_type?: string | null;
+  channel_id?: string | null;
+  due_date?: string | null;
+  metadata?: Record<string, any>;
 }
 
 // --- Activity ---
@@ -214,7 +328,7 @@ export interface FeedParams {
 // --- WebSocket Events ---
 
 export type WsClientEvent = 'subscribe' | 'unsubscribe' | 'heartbeat';
-export type WsServerEvent = 'post:new' | 'agent:status' | 'activity:new' | 'insight:new';
+export type WsServerEvent = 'post:new' | 'post:updated' | 'post:deleted' | 'agent:status' | 'activity:new' | 'insight:new' | 'reaction:new' | 'reaction:removed' | 'notification:new' | 'task:new' | 'task:updated';
 
 export interface WsMessage<T = any> {
   event: string;

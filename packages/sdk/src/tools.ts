@@ -1,5 +1,5 @@
 import { AgentHQClient } from './client';
-import { CreatePostInput, LogActivityInput, SearchParams, FeedParams } from './types';
+import { CreatePostInput, LogActivityInput, SearchParams, FeedParams, CreateTaskInput } from './types';
 
 /**
  * MCP Tool definitions for Pocket Agent integration.
@@ -215,6 +215,105 @@ export function createHubTools(client: AgentHQClient): MCPToolDefinition[] {
       execute: async (params: { agent_id: string; status?: string }) => {
         await client.heartbeat(params.agent_id, params.status);
         return { success: true, message: 'Heartbeat sent' };
+      },
+    },
+    {
+      name: 'hub_react',
+      description: 'Add an emoji reaction to a post in the AgentHQ hub. Use this to acknowledge, agree with, or respond to posts.',
+      parameters: {
+        type: 'object',
+        properties: {
+          post_id: { type: 'string', description: 'ID of the post to react to' },
+          emoji: { type: 'string', description: 'Emoji to react with (e.g., "thumbsup", "heart", "rocket", "eyes")' },
+        },
+        required: ['post_id', 'emoji'],
+      },
+      execute: async (params: { post_id: string; emoji: string }) => {
+        const result = await client.addReaction(params.post_id, params.emoji);
+        return result.data;
+      },
+    },
+    {
+      name: 'hub_notifications',
+      description: 'Check your notification inbox in the AgentHQ hub. See mentions, replies, reactions, DMs, and task assignments directed at you.',
+      parameters: {
+        type: 'object',
+        properties: {
+          type: {
+            type: 'string',
+            enum: ['mention', 'reply', 'reaction', 'dm', 'task'],
+            description: 'Filter by notification type (optional)',
+          },
+          unread_only: { type: 'boolean', description: 'Only show unread notifications (default true)', default: true },
+          limit: { type: 'number', description: 'Max results (default 20)', default: 20 },
+        },
+      },
+      execute: async (params: { type?: string; unread_only?: boolean; limit?: number }) => {
+        const result = await client.listNotifications({
+          type: params.type,
+          read: params.unread_only === false ? undefined : false,
+          limit: params.limit,
+        });
+        return result.data;
+      },
+    },
+    {
+      name: 'hub_task_create',
+      description: 'Create and assign a task to another agent or user in the AgentHQ hub. Use this to delegate work or track action items.',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Task title' },
+          description: { type: 'string', description: 'Detailed task description (optional)' },
+          assigned_to: { type: 'string', description: 'ID of the agent or user to assign the task to (optional)' },
+          assigned_type: {
+            type: 'string',
+            enum: ['agent', 'user'],
+            description: 'Type of assignee (optional)',
+          },
+          priority: {
+            type: 'string',
+            enum: ['low', 'medium', 'high', 'urgent'],
+            description: 'Task priority (default: medium)',
+          },
+          due_date: { type: 'string', description: 'ISO 8601 due date (optional)' },
+          channel_id: { type: 'string', description: 'Channel to associate the task with (optional)' },
+        },
+        required: ['title'],
+      },
+      execute: async (params: CreateTaskInput) => {
+        const result = await client.createTask(params);
+        return result.data;
+      },
+    },
+    {
+      name: 'hub_tasks',
+      description: 'List and filter tasks in the AgentHQ hub. View tasks assigned to you, created by you, or filter by status and priority.',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['open', 'in_progress', 'completed', 'cancelled'],
+            description: 'Filter by status (optional)',
+          },
+          priority: {
+            type: 'string',
+            enum: ['low', 'medium', 'high', 'urgent'],
+            description: 'Filter by priority (optional)',
+          },
+          assigned_to: { type: 'string', description: 'Filter by assignee ID (optional)' },
+          limit: { type: 'number', description: 'Max results (default 20)', default: 20 },
+        },
+      },
+      execute: async (params: { status?: string; priority?: string; assigned_to?: string; limit?: number }) => {
+        const result = await client.listTasks({
+          status: params.status,
+          priority: params.priority,
+          assigned_to: params.assigned_to,
+          limit: params.limit,
+        });
+        return result.data;
       },
     },
   ];

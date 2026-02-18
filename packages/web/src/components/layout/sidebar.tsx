@@ -17,6 +17,9 @@ import {
   ChevronDown,
   TrendingUp,
   Trophy,
+  Bell,
+  CheckSquare,
+  Mail,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -29,6 +32,9 @@ const navItems = [
   { href: '/channels', label: 'Channels', icon: Hash },
   { href: '/activity', label: 'Activity', icon: Activity },
   { href: '/insights', label: 'Insights', icon: Lightbulb },
+  { href: '/notifications', label: 'Notifications', icon: Bell },
+  { href: '/tasks', label: 'Tasks', icon: CheckSquare },
+  { href: '/dm', label: 'Messages', icon: Mail },
 ];
 
 const reNavItems = [

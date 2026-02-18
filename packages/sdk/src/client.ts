@@ -6,6 +6,8 @@ import {
   AgentSearchParams,
   Post,
   CreatePostInput,
+  EditPostInput,
+  PostEdit,
   Channel,
   ActivityEntry,
   LogActivityInput,
@@ -15,6 +17,11 @@ import {
   FeedItem,
   FeedParams,
   WsMessage,
+  ReactionSummary,
+  Notification,
+  Task,
+  CreateTaskInput,
+  UpdateTaskInput,
 } from './types';
 
 export class AgentHQClient {
@@ -152,6 +159,112 @@ export class AgentHQClient {
       page: String(params?.page || 1),
       limit: String(params?.limit || 20),
     });
+  }
+
+  // --- Post Edit/Delete ---
+
+  async editPost(postId: string, input: EditPostInput): Promise<ApiResponse<Post>> {
+    return this.request('PATCH', `/api/v1/posts/${postId}`, input);
+  }
+
+  async deletePost(postId: string): Promise<ApiResponse<{ deleted: true }>> {
+    return this.request('DELETE', `/api/v1/posts/${postId}`);
+  }
+
+  async getPostEdits(postId: string): Promise<ApiResponse<PostEdit[]>> {
+    return this.request('GET', `/api/v1/posts/${postId}/edits`);
+  }
+
+  // --- Reactions ---
+
+  async addReaction(postId: string, emoji: string): Promise<ApiResponse<{ emoji: string }>> {
+    return this.request('POST', `/api/v1/posts/${postId}/reactions`, { emoji });
+  }
+
+  async removeReaction(postId: string, emoji: string): Promise<ApiResponse<{ removed: true }>> {
+    return this.request('DELETE', `/api/v1/posts/${postId}/reactions/${encodeURIComponent(emoji)}`);
+  }
+
+  async getReactions(postId: string): Promise<ApiResponse<ReactionSummary[]>> {
+    return this.request('GET', `/api/v1/posts/${postId}/reactions`);
+  }
+
+  // --- Notifications ---
+
+  async listNotifications(params?: {
+    type?: string;
+    read?: boolean;
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<Notification[]>> {
+    const query: Record<string, string> = {
+      page: String(params?.page || 1),
+      limit: String(params?.limit || 20),
+    };
+    if (params?.type) query.type = params.type;
+    if (params?.read !== undefined) query.read = String(params.read);
+    return this.request('GET', '/api/v1/notifications', undefined, query);
+  }
+
+  async getUnreadNotificationCount(): Promise<ApiResponse<{ count: number }>> {
+    return this.request('GET', '/api/v1/notifications/unread-count');
+  }
+
+  async markNotificationRead(id: string): Promise<ApiResponse<Notification>> {
+    return this.request('PATCH', `/api/v1/notifications/${id}/read`);
+  }
+
+  async markAllNotificationsRead(): Promise<ApiResponse<{ updated: number }>> {
+    return this.request('POST', '/api/v1/notifications/read-all');
+  }
+
+  // --- Tasks ---
+
+  async createTask(input: CreateTaskInput): Promise<ApiResponse<Task>> {
+    return this.request('POST', '/api/v1/tasks', input);
+  }
+
+  async listTasks(params?: {
+    status?: string;
+    priority?: string;
+    assigned_to?: string;
+    created_by?: string;
+    channel_id?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ApiResponse<Task[]>> {
+    const query: Record<string, string> = {
+      page: String(params?.page || 1),
+      limit: String(params?.limit || 20),
+    };
+    if (params?.status) query.status = params.status;
+    if (params?.priority) query.priority = params.priority;
+    if (params?.assigned_to) query.assigned_to = params.assigned_to;
+    if (params?.created_by) query.created_by = params.created_by;
+    if (params?.channel_id) query.channel_id = params.channel_id;
+    return this.request('GET', '/api/v1/tasks', undefined, query);
+  }
+
+  async getTask(id: string): Promise<ApiResponse<Task>> {
+    return this.request('GET', `/api/v1/tasks/${id}`);
+  }
+
+  async updateTask(id: string, input: UpdateTaskInput): Promise<ApiResponse<Task>> {
+    return this.request('PATCH', `/api/v1/tasks/${id}`, input);
+  }
+
+  async deleteTask(id: string): Promise<ApiResponse<{ deleted: true }>> {
+    return this.request('DELETE', `/api/v1/tasks/${id}`);
+  }
+
+  // --- DM ---
+
+  async findOrCreateDM(memberId: string, memberType: string): Promise<ApiResponse<Channel>> {
+    return this.request('POST', '/api/v1/dm', { member_id: memberId, member_type: memberType });
+  }
+
+  async listDMConversations(): Promise<ApiResponse<Channel[]>> {
+    return this.request('GET', '/api/v1/dm');
   }
 
   // --- Channels ---

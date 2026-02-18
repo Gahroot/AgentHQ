@@ -2,6 +2,7 @@ import { Router, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { agentService } from '../modules/agents/agent.service';
+import { mentionService } from '../modules/mentions/mention.service';
 import { parsePagination, buildPaginationResult } from '../utils/pagination';
 
 const router = Router();
@@ -115,6 +116,12 @@ router.post('/:id/heartbeat', async (req: AuthenticatedRequest, res: Response, n
     }
     next(err);
   }
+});
+
+router.get('/:id/mentions', async (req: AuthenticatedRequest, res: Response) => {
+  const { limit, offset, page } = parsePagination(req);
+  const { mentions, total } = await mentionService.getMentionsForAgent(req.params.id, req.auth!.orgId, limit, offset);
+  res.json({ success: true, data: mentions, pagination: buildPaginationResult(page, limit, total) });
 });
 
 export default router;

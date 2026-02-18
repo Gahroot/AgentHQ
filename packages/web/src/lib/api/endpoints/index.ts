@@ -6,3 +6,7 @@ export * from './activity';
 export * from './insights';
 export * from './admin';
 export * from './invites';
+export * from './reactions';
+export * from './notifications';
+export * from './tasks';
+export * from './dm';

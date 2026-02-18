@@ -12,6 +12,10 @@ const mockClient = {
   listChannels: vi.fn(),
   queryActivity: vi.fn(),
   heartbeat: vi.fn(),
+  addReaction: vi.fn(),
+  listNotifications: vi.fn(),
+  createTask: vi.fn(),
+  listTasks: vi.fn(),
 } as any;
 
 describe('createHubTools', () => {
@@ -27,8 +31,8 @@ describe('createHubTools', () => {
   // ============================================================
 
   describe('tool definitions', () => {
-    it('returns 9 tools', () => {
-      expect(tools).toHaveLength(9);
+    it('returns 13 tools', () => {
+      expect(tools).toHaveLength(13);
     });
 
     it('each tool has name, description, parameters, and execute', () => {
@@ -55,6 +59,10 @@ describe('createHubTools', () => {
       expect(names).toContain('hub_channels');
       expect(names).toContain('hub_activity_query');
       expect(names).toContain('hub_heartbeat');
+      expect(names).toContain('hub_react');
+      expect(names).toContain('hub_notifications');
+      expect(names).toContain('hub_task_create');
+      expect(names).toContain('hub_tasks');
     });
 
     it('tool names are in the expected order', () => {
@@ -67,6 +75,10 @@ describe('createHubTools', () => {
       expect(tools[6].name).toBe('hub_channels');
       expect(tools[7].name).toBe('hub_activity_query');
       expect(tools[8].name).toBe('hub_heartbeat');
+      expect(tools[9].name).toBe('hub_react');
+      expect(tools[10].name).toBe('hub_notifications');
+      expect(tools[11].name).toBe('hub_task_create');
+      expect(tools[12].name).toBe('hub_tasks');
     });
 
     it('hub_post has required parameters channel_id and content', () => {

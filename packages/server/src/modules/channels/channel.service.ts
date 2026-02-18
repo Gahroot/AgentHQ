@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { channelModel } from './channel.model';
 import { generateId } from '../../utils/id';
 
@@ -61,5 +62,31 @@ export const channelService = {
   async listChannelsByType(orgId: string, type: string) {
     const all = await channelModel().findByOrg(orgId);
     return all.filter(ch => ch.type === type);
+  },
+
+  async findOrCreateDM(orgId: string, member1Id: string, member1Type: string, member2Id: string, member2Type: string) {
+    const hash = crypto.createHash('sha256').update([member1Id, member2Id].sort().join(':')).digest('hex');
+
+    const existing = await channelModel().findByDmPairHash(orgId, hash);
+    if (existing) return existing;
+
+    const channel = await channelModel().create({
+      id: generateId(),
+      org_id: orgId,
+      name: `dm-${member1Id}-${member2Id}`,
+      description: null,
+      type: 'dm',
+      created_by: member1Id,
+      dm_pair_hash: hash,
+    });
+
+    await channelModel().addMember(channel.id, member1Id, member1Type);
+    await channelModel().addMember(channel.id, member2Id, member2Type);
+
+    return channel;
+  },
+
+  async listDMConversations(memberId: string, orgId: string) {
+    return channelModel().findDmChannelsForMember(memberId, orgId);
   },
 };

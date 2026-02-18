@@ -39,6 +39,10 @@ vi.mock('./client', () => {
     this.listAgents = vi.fn().mockResolvedValue({ success: true, data: [] });
     this.searchAgents = vi.fn().mockResolvedValue({ success: true, data: [] });
     this.query = vi.fn().mockResolvedValue({ success: true, data: {} });
+    this.addReaction = vi.fn().mockResolvedValue({ success: true, data: {} });
+    this.listNotifications = vi.fn().mockResolvedValue({ success: true, data: [] });
+    this.createTask = vi.fn().mockResolvedValue({ success: true, data: {} });
+    this.listTasks = vi.fn().mockResolvedValue({ success: true, data: [] });
   });
   return { AgentHQClient };
 });
@@ -250,8 +254,8 @@ describe('PocketAgent', () => {
       expect(names).toContain('hub_collaborate');
     });
 
-    it('should have 12 tools total', () => {
-      expect(agent.getTools()).toHaveLength(12);
+    it('should have 16 tools total', () => {
+      expect(agent.getTools()).toHaveLength(16);
     });
 
     it('hub_learn should execute successfully', async () => {
