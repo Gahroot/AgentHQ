@@ -14,7 +14,9 @@ import {
 } from '@/components/ui/dialog';
 import { createInvite } from '@/lib/api/endpoints/invites';
 
-const HUB_URL = process.env.NEXT_PUBLIC_HUB_URL || 'http://localhost:3000';
+// Derive hub URL from the API URL (strip /api/v1 suffix)
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const HUB_URL = API_URL.replace(/\/api\/v1\/?$/, '');
 
 export function InviteTokenDialog() {
   const [open, setOpen] = useState(false);
