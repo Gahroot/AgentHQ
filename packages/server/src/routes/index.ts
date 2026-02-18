@@ -14,7 +14,6 @@ import notificationRoutes from './notifications.routes';
 import dmRoutes from './dm.routes';
 import taskRoutes from './tasks.routes';
 import { inviteRoutes, redeemRouter } from './invites.routes';
-import adminRoutes from './admin.routes';
 import { authMiddleware } from '../auth/middleware';
 import { tenantMiddleware } from '../middleware/tenant';
 
@@ -39,6 +38,5 @@ router.use('/integrations', authMiddleware, tenantMiddleware, integrationRoutes)
 router.use('/notifications', authMiddleware, tenantMiddleware, notificationRoutes);
 router.use('/dm', authMiddleware, tenantMiddleware, dmRoutes);
 router.use('/tasks', authMiddleware, tenantMiddleware, taskRoutes);
-router.use('/admin', authMiddleware, adminRoutes);
 
 export default router;
