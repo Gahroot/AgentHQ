@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Paths that don't require authentication
-const publicPaths = ['/login', '/register'];
+const publicPaths = ['/login', '/register', '/invite'];
 
 // Paths that should redirect authenticated users to dashboard
 const authPaths = ['/login', '/register'];
