@@ -3,7 +3,8 @@ import { createHubTools, MCPToolDefinition } from './tools';
 
 const mockClient = {
   createPost: vi.fn(),
-  query: vi.fn(),
+  search: vi.fn(),
+  feed: vi.fn(),
   searchPosts: vi.fn(),
   logActivity: vi.fn(),
   listAgents: vi.fn(),
@@ -46,8 +47,8 @@ describe('createHubTools', () => {
     it('has correct tool names', () => {
       const names = tools.map((t) => t.name);
       expect(names).toContain('hub_post');
-      expect(names).toContain('hub_query');
       expect(names).toContain('hub_search');
+      expect(names).toContain('hub_feed');
       expect(names).toContain('hub_activity');
       expect(names).toContain('hub_agents');
       expect(names).toContain('hub_find_agents');
@@ -58,8 +59,8 @@ describe('createHubTools', () => {
 
     it('tool names are in the expected order', () => {
       expect(tools[0].name).toBe('hub_post');
-      expect(tools[1].name).toBe('hub_query');
-      expect(tools[2].name).toBe('hub_search');
+      expect(tools[1].name).toBe('hub_search');
+      expect(tools[2].name).toBe('hub_feed');
       expect(tools[3].name).toBe('hub_activity');
       expect(tools[4].name).toBe('hub_agents');
       expect(tools[5].name).toBe('hub_find_agents');
@@ -79,18 +80,21 @@ describe('createHubTools', () => {
       expect(hubPost.parameters.properties).toHaveProperty('metadata');
     });
 
-    it('hub_query has required parameter question', () => {
-      const hubQuery = tools.find((t) => t.name === 'hub_query')!;
-      expect(hubQuery.parameters.required).toContain('question');
-      expect(hubQuery.parameters.properties).toHaveProperty('question');
-      expect(hubQuery.parameters.properties).toHaveProperty('context');
+    it('hub_search has required parameter q', () => {
+      const hubSearch = tools.find((t) => t.name === 'hub_search')!;
+      expect(hubSearch.parameters.required).toContain('q');
+      expect(hubSearch.parameters.properties).toHaveProperty('q');
+      expect(hubSearch.parameters.properties).toHaveProperty('types');
+      expect(hubSearch.parameters.properties).toHaveProperty('limit');
     });
 
-    it('hub_search has required parameter query', () => {
-      const hubSearch = tools.find((t) => t.name === 'hub_search')!;
-      expect(hubSearch.parameters.required).toContain('query');
-      expect(hubSearch.parameters.properties).toHaveProperty('query');
-      expect(hubSearch.parameters.properties).toHaveProperty('limit');
+    it('hub_feed has optional parameters', () => {
+      const hubFeed = tools.find((t) => t.name === 'hub_feed')!;
+      expect(hubFeed.parameters.properties).toHaveProperty('since');
+      expect(hubFeed.parameters.properties).toHaveProperty('until');
+      expect(hubFeed.parameters.properties).toHaveProperty('types');
+      expect(hubFeed.parameters.properties).toHaveProperty('actor_id');
+      expect(hubFeed.parameters.properties).toHaveProperty('limit');
     });
 
     it('hub_activity has required parameter action', () => {
@@ -184,94 +188,91 @@ describe('createHubTools', () => {
       });
     });
 
-    describe('hub_query', () => {
-      it('calls client.query with correct args and returns data', async () => {
-        const input = {
-          question: 'What is the status?',
-          context: { scope: 'all' },
-        };
-        const expectedData = {
-          question: input.question,
-          answer: 'Everything is fine',
-          sources: [],
-        };
-        mockClient.query.mockResolvedValueOnce({
-          success: true,
-          data: expectedData,
-        });
-
-        const tool = tools.find((t) => t.name === 'hub_query')!;
-        const result = await tool.execute(input);
-
-        expect(mockClient.query).toHaveBeenCalledWith(input);
-        expect(result).toEqual(expectedData);
-      });
-
-      it('works without optional context', async () => {
-        const input = { question: 'Simple question' };
-        mockClient.query.mockResolvedValueOnce({
-          success: true,
-          data: { question: input.question, answer: 'Answer', sources: [] },
-        });
-
-        const tool = tools.find((t) => t.name === 'hub_query')!;
-        await tool.execute(input);
-
-        expect(mockClient.query).toHaveBeenCalledWith(input);
-      });
-
-      it('propagates errors from client.query', async () => {
-        mockClient.query.mockRejectedValueOnce(new Error('Query failed'));
-
-        const tool = tools.find((t) => t.name === 'hub_query')!;
-        await expect(
-          tool.execute({ question: 'test' }),
-        ).rejects.toThrow('Query failed');
-      });
-    });
-
     describe('hub_search', () => {
-      it('calls client.searchPosts with correct args and returns data', async () => {
-        const expectedData = [
-          { id: 'post_1', content: 'matching result' },
-        ];
-        mockClient.searchPosts.mockResolvedValueOnce({
+      it('calls client.search with correct args and returns data', async () => {
+        const expectedData = {
+          posts: [{ id: 'post_1', content: 'matching result' }],
+          insights: [],
+          agents: [],
+        };
+        mockClient.search.mockResolvedValueOnce({
           success: true,
           data: expectedData,
         });
 
         const tool = tools.find((t) => t.name === 'hub_search')!;
-        const result = await tool.execute({ query: 'market trends' });
+        const result = await tool.execute({ q: 'market trends' });
 
-        expect(mockClient.searchPosts).toHaveBeenCalledWith('market trends', {
+        expect(mockClient.search).toHaveBeenCalledWith({
+          q: 'market trends',
+          types: undefined,
           limit: undefined,
         });
         expect(result).toEqual(expectedData);
       });
 
-      it('passes limit parameter to searchPosts', async () => {
-        mockClient.searchPosts.mockResolvedValueOnce({
+      it('passes types and limit parameters', async () => {
+        mockClient.search.mockResolvedValueOnce({
           success: true,
-          data: [],
+          data: { posts: [], insights: [], agents: [] },
         });
 
         const tool = tools.find((t) => t.name === 'hub_search')!;
-        await tool.execute({ query: 'test', limit: 5 });
+        await tool.execute({ q: 'test', types: 'posts,insights', limit: 5 });
 
-        expect(mockClient.searchPosts).toHaveBeenCalledWith('test', {
+        expect(mockClient.search).toHaveBeenCalledWith({
+          q: 'test',
+          types: 'posts,insights',
           limit: 5,
         });
       });
 
-      it('propagates errors from client.searchPosts', async () => {
-        mockClient.searchPosts.mockRejectedValueOnce(
+      it('propagates errors from client.search', async () => {
+        mockClient.search.mockRejectedValueOnce(
           new Error('Search failed'),
         );
 
         const tool = tools.find((t) => t.name === 'hub_search')!;
         await expect(
-          tool.execute({ query: 'bad query' }),
+          tool.execute({ q: 'bad query' }),
         ).rejects.toThrow('Search failed');
+      });
+    });
+
+    describe('hub_feed', () => {
+      it('calls client.feed with correct args and returns data', async () => {
+        const expectedData = [
+          { resource_type: 'post', resource_id: 'p1', timestamp: '2026-02-17T10:00:00Z', summary: 'New update: test', data: {} },
+        ];
+        mockClient.feed.mockResolvedValueOnce({
+          success: true,
+          data: expectedData,
+        });
+
+        const tool = tools.find((t) => t.name === 'hub_feed')!;
+        const result = await tool.execute({ since: '2026-02-16T00:00:00Z' });
+
+        expect(mockClient.feed).toHaveBeenCalledWith({ since: '2026-02-16T00:00:00Z' });
+        expect(result).toEqual(expectedData);
+      });
+
+      it('works with no params', async () => {
+        mockClient.feed.mockResolvedValueOnce({
+          success: true,
+          data: [],
+        });
+
+        const tool = tools.find((t) => t.name === 'hub_feed')!;
+        await tool.execute({});
+
+        expect(mockClient.feed).toHaveBeenCalledWith({});
+      });
+
+      it('propagates errors from client.feed', async () => {
+        mockClient.feed.mockRejectedValueOnce(new Error('Feed failed'));
+
+        const tool = tools.find((t) => t.name === 'hub_feed')!;
+        await expect(tool.execute({})).rejects.toThrow('Feed failed');
       });
     });
 

@@ -37,13 +37,13 @@ describe('SummaryGenerator', () => {
 
     it('should collect tools used across activities', () => {
       extractor.track('Used tool', { toolsUsed: ['hub_post'] });
-      extractor.track('Used another tool', { toolsUsed: ['hub_query'] });
+      extractor.track('Used another tool', { toolsUsed: ['hub_search'] });
       extractor.track('Used same tool', { toolsUsed: ['hub_post'] });
 
       const summary = generator.generate();
 
       expect(summary.metrics.toolsUsed).toContain('hub_post');
-      expect(summary.metrics.toolsUsed).toContain('hub_query');
+      expect(summary.metrics.toolsUsed).toContain('hub_search');
       expect(summary.metrics.toolsUsed).toHaveLength(2); // deduped
     });
 

@@ -236,8 +236,8 @@ describe('PocketAgent', () => {
 
       // Base tools
       expect(names).toContain('hub_post');
-      expect(names).toContain('hub_query');
       expect(names).toContain('hub_search');
+      expect(names).toContain('hub_feed');
       expect(names).toContain('hub_activity');
       expect(names).toContain('hub_agents');
       expect(names).toContain('hub_channels');
