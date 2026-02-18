@@ -23,9 +23,8 @@ import {
 } from '@/components/ui/select';
 import { createUserInvite } from '@/lib/api/endpoints/invites';
 
-// Derive hub URL from the API URL (strip /api/v1 suffix)
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-const HUB_URL = API_URL.replace(/\/api\/v1\/?$/, '');
+// Use the web app URL for invite links (not the API URL)
+const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
 
 interface UserInviteDialogProps {
   onInvited?: () => void;
@@ -48,7 +47,7 @@ export function UserInviteDialog({ onInvited }: UserInviteDialogProps) {
       setLoading(true);
       setError(null);
       const result = await createUserInvite({ email, role });
-      const inviteUrl = `${HUB_URL}/invite/${result.token}`;
+      const inviteUrl = `${WEB_URL}/invite/${result.token}`;
       setSuccess({ inviteUrl, email });
       setEmail('');
       onInvited?.();
