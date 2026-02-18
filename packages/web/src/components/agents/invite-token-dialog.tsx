@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { createInvite } from '@/lib/api/endpoints/invites';
+import { createAgentInvite } from '@/lib/api/endpoints/invites';
 
 // Derive hub URL from the API URL (strip /api/v1 suffix)
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -51,7 +51,7 @@ export function InviteTokenDialog() {
     try {
       setLoading(true);
       setError(null);
-      const result = await createInvite();
+      const result = await createAgentInvite();
       setToken(result.token);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate invite token');

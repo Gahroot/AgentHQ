@@ -99,6 +99,11 @@ export default function AdminPage() {
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3">
+        <Link href="/admin/users">
+          <Button variant="outline" size="sm">
+            Manage Users
+          </Button>
+        </Link>
         <Link href="/admin/billing">
           <Button variant="outline" size="sm">
             View Billing
