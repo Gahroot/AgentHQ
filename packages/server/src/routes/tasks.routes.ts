@@ -6,6 +6,7 @@ import { notificationService } from '../modules/notifications/notification.servi
 import { parsePagination, buildPaginationResult } from '../utils/pagination';
 import { broadcastToOrg } from '../websocket/index';
 import { logger } from '../middleware/logger';
+import { webhookService } from '../modules/webhooks/webhook.service';
 
 const router = Router();
 
@@ -54,6 +55,19 @@ router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunc
         task.id,
         task.title,
       ).catch(err => logger.error({ err }, 'Failed to send task assignment notification'));
+
+      // Dispatch task:assigned webhook
+      setImmediate(() => {
+        webhookService.dispatch(req.auth!.orgId, 'task:assigned', {
+          task_id: task.id,
+          title: task.title,
+          assigned_to: body.assigned_to,
+          assigned_type: body.assigned_type,
+          assigned_by: req.auth!.id,
+          status: task.status,
+          priority: task.priority,
+        }).catch(err => logger.warn({ err }, 'Webhook dispatch failed for task:assigned'));
+      });
     }
 
     res.status(201).json({ success: true, data: task });
@@ -115,6 +129,20 @@ router.patch('/:id', async (req: AuthenticatedRequest, res: Response, next: Next
         req.params.id,
         task?.title || existingTask.title,
       ).catch(err => logger.error({ err }, 'Failed to send task assignment notification'));
+
+      // Dispatch task:assigned webhook (reassignment)
+      setImmediate(() => {
+        webhookService.dispatch(req.auth!.orgId, 'task:assigned', {
+          task_id: req.params.id,
+          title: task?.title || existingTask.title,
+          assigned_to: body.assigned_to,
+          assigned_type: body.assigned_type,
+          assigned_by: req.auth!.id,
+          status: task?.status || existingTask.status,
+          priority: task?.priority || existingTask.priority,
+          previous_assigned_to: existingTask.assigned_to,
+        }).catch(err => logger.warn({ err }, 'Webhook dispatch failed for task:assigned'));
+      });
     }
 
     res.json({ success: true, data: task });

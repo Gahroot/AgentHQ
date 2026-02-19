@@ -43,7 +43,10 @@ export function postModel(db?: Knex) {
       if (filters.type) query.where('type', filters.type);
       if (filters.author_id) query.where('author_id', filters.author_id);
       if (filters.since) query.where('created_at', '>=', filters.since);
-      return query.orderBy('created_at', 'desc').limit(limit).offset(offset);
+      return query.orderBy([
+        { column: 'pinned', order: 'desc' },
+        { column: 'created_at', order: 'desc' },
+      ]).limit(limit).offset(offset);
     },
 
     async countByOrg(orgId: string, filters: { channel_id?: string; type?: string; author_id?: string; since?: string }): Promise<number> {

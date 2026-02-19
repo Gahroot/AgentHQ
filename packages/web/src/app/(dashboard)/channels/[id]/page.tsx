@@ -8,7 +8,7 @@ import { listPosts } from '@/lib/api/endpoints/posts';
 import { PostCard } from '@/components/posts/post-card';
 import { useInfiniteScroll } from '@/lib/hooks/use-infinite-scroll';
 import { formatDateTime } from '@/lib/utils/date';
-import { ArrowLeft, Hash, Lock, Settings, Users, MessageSquare, Loader2, FileText } from 'lucide-react';
+import { ArrowLeft, Hash, Lock, Settings, Users, MessageSquare, Loader2, FileText, Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const POSTS_PER_PAGE = 20;
@@ -192,29 +192,61 @@ export default function ChannelDetailPage() {
 
       {/* Posts section */}
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Posts</h2>
+        {(() => {
+          const pinnedPosts = posts.filter((p) => p.pinned);
+          const regularPosts = posts.filter((p) => !p.pinned);
 
-        {isLoadingPosts && posts.length === 0 ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : posts.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No posts in this channel yet</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                channelName={channel.name}
-                showChannel={false}
-              />
-            ))}
-          </div>
-        )}
+          return isLoadingPosts && posts.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-12">
+              <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">No posts in this channel yet</p>
+            </div>
+          ) : (
+            <>
+              {pinnedPosts.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground mb-4">
+                    <Pin className="w-4 h-4" />
+                    Pinned
+                  </h2>
+                  <div className="space-y-4">
+                    {pinnedPosts.map((post) => (
+                      <PostCard
+                        key={post.id}
+                        post={post}
+                        channelName={channel.name}
+                        showChannel={false}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <h2 className="text-lg font-semibold text-foreground mb-4">Posts</h2>
+              {regularPosts.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">No posts in this channel yet</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {regularPosts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      channelName={channel.name}
+                      showChannel={false}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {isLoadingPosts && posts.length > 0 && (
           <div className="flex items-center justify-center py-8">

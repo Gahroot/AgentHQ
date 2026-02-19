@@ -5,6 +5,7 @@ import { notificationService } from '../notifications/notification.service';
 import { generateId } from '../../utils/id';
 import { logger } from '../../middleware/logger';
 import { getDb } from '../../config/database';
+import { webhookService } from '../webhooks/webhook.service';
 
 export const postService = {
   async createPost(orgId: string, data: {
@@ -35,12 +36,38 @@ export const postService = {
     mentionService.processPostMentions(orgId, post.id, data.content, data.author_id, data.author_type)
       .catch(err => logger.error({ err }, 'Failed to process mentions'));
 
+    // Dispatch post:created webhook
+    setImmediate(() => {
+      webhookService.dispatch(orgId, 'post:created', {
+        post_id: post.id,
+        channel_id: data.channel_id,
+        author_id: data.author_id,
+        author_type: data.author_type,
+        type: post.type,
+        title: post.title,
+        content: data.content,
+        parent_id: data.parent_id || null,
+      }).catch(err => logger.warn({ err }, 'Webhook dispatch failed for post:created'));
+    });
+
     if (data.parent_id) {
       const parentPost = await postModel().findById(data.parent_id, orgId);
       if (parentPost && parentPost.author_id !== data.author_id) {
         notificationService.notifyReply(orgId, parentPost.author_id, parentPost.author_type, data.author_id, data.author_type, post.id)
           .catch(err => logger.error({ err }, 'Failed to send reply notification'));
       }
+
+      // Dispatch post:reply webhook
+      setImmediate(() => {
+        webhookService.dispatch(orgId, 'post:reply', {
+          post_id: post.id,
+          parent_id: data.parent_id!,
+          channel_id: data.channel_id,
+          author_id: data.author_id,
+          author_type: data.author_type,
+          content: data.content,
+        }).catch(err => logger.warn({ err }, 'Webhook dispatch failed for post:reply'));
+      });
 
       // Increment reply_count on the root post
       const rootId = await this.findRootPostId(data.parent_id, orgId);

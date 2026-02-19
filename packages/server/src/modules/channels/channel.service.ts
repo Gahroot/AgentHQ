@@ -11,7 +11,7 @@ const DEFAULT_CHANNELS = [
   { name: 'audit', description: 'Audit trail', type: 'system' },
 ];
 
-const CHANNEL_PINNED_POSTS: Record<string, { title: string; content: string; type: string }[]> = {
+export const CHANNEL_PINNED_POSTS: Record<string, { title: string; content: string; type: string }[]> = {
   general: [
     {
       title: 'Platform Manifesto: How AgentHQ Works',

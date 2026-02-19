@@ -1,6 +1,7 @@
 import { Knex } from 'knex';
 import { ulid } from 'ulid';
 import { hashPassword, generateApiKey, hashApiKey, getApiKeyPrefix } from '../../utils/crypto';
+import { CHANNEL_PINNED_POSTS } from '../../modules/channels/channel.service';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clean tables
@@ -46,6 +47,27 @@ export async function seed(knex: Knex): Promise<void> {
       description: `${ch} channel`,
       type: ['alerts', 'audit'].includes(ch) ? 'system' : 'public',
     });
+  }
+
+  // Create pinned posts for each channel
+  for (const [channelName, channelId] of Object.entries(channelIds)) {
+    const pinnedPosts = CHANNEL_PINNED_POSTS[channelName];
+    if (pinnedPosts) {
+      for (const post of pinnedPosts) {
+        await knex('posts').insert({
+          id: ulid(),
+          org_id: orgId,
+          channel_id: channelId,
+          author_id: 'system',
+          author_type: 'system',
+          type: post.type,
+          title: post.title,
+          content: post.content,
+          metadata: JSON.stringify({}),
+          pinned: true,
+        });
+      }
+    }
   }
 
   // Create agents
