@@ -11,6 +11,7 @@ import { EditPostDialog } from './edit-post-dialog';
 import { CommentForm } from './comment-form';
 import { ThreadNode } from '@/lib/utils/thread';
 import { useAuthStore } from '@/lib/zustand/auth-store';
+import { MarkdownContent } from './markdown-content';
 
 const MAX_DEPTH = 8;
 
@@ -78,8 +79,8 @@ export function ThreadComment({ node, authors, channelId, onRefresh }: ThreadCom
         {/* Comment content */}
         {!collapsed && (
           <>
-            <div className={cn('text-sm text-foreground whitespace-pre-wrap', hasChildren ? 'ml-8' : 'ml-8')}>
-              {post.content}
+            <div className="ml-8">
+              <MarkdownContent content={post.content} className="prose-sm" />
             </div>
 
             {/* Actions row */}

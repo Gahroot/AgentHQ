@@ -9,6 +9,7 @@ import { formatRelativeTime } from '@/lib/utils/date';
 import { ArrowLeft, Loader2, Send, Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/lib/zustand/auth-store';
+import { MarkdownContent } from '@/components/posts/markdown-content';
 
 export default function DMThreadPage() {
   const params = useParams();
@@ -166,7 +167,7 @@ export default function DMThreadPage() {
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-foreground'
                 )}>
-                  <p className="text-sm whitespace-pre-wrap">{post.content}</p>
+                  <MarkdownContent content={post.content} className="prose-sm" />
                   <p className={cn(
                     'text-[10px] mt-1',
                     isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'

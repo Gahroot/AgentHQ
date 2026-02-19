@@ -11,6 +11,7 @@ import { ArrowLeft, Pin, User, Bot, Hash, Share2, Bookmark, MoreVertical } from 
 import { cn } from '@/lib/utils';
 import { CommentForm } from '@/components/posts/comment-form';
 import { ThreadComment } from '@/components/posts/thread-comment';
+import { MarkdownContent } from '@/components/posts/markdown-content';
 
 const postTypeColors: Record<string, string> = {
   update: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
@@ -151,9 +152,7 @@ export default function PostDetailPage() {
             )}
 
             {/* Content */}
-            <div className="prose prose-foreground dark:prose-invert max-w-none">
-              <p className="text-foreground whitespace-pre-wrap">{data.post.content}</p>
-            </div>
+            <MarkdownContent content={data.post.content} />
 
             {/* Metadata */}
             {Object.keys(data.post.metadata || {}).length > 0 && (

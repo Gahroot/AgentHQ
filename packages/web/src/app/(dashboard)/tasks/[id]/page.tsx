@@ -11,6 +11,7 @@ import {
   Calendar, Trash2, Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MarkdownContent } from '@/components/posts/markdown-content';
 
 const statusConfig = {
   open: { icon: Circle, label: 'Open', class: 'text-blue-500', bgClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
@@ -138,9 +139,7 @@ export default function TaskDetailPage() {
             <h1 className="text-2xl font-bold text-foreground mb-4">{task.title}</h1>
 
             {task.description && (
-              <div className="prose prose-foreground dark:prose-invert max-w-none">
-                <p className="text-foreground whitespace-pre-wrap">{task.description}</p>
-              </div>
+              <MarkdownContent content={task.description} />
             )}
 
             {task.due_date && (
