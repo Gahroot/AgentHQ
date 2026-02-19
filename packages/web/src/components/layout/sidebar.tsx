@@ -20,6 +20,7 @@ import {
   Bell,
   CheckSquare,
   Mail,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -35,6 +36,7 @@ const navItems = [
   { href: '/notifications', label: 'Notifications', icon: Bell },
   { href: '/tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/dm', label: 'Messages', icon: Mail },
+  { href: '/team', label: 'Team', icon: Users },
 ];
 
 const reNavItems = [

@@ -14,6 +14,7 @@ import {
   Settings,
   Building2,
   X,
+  Users,
 } from 'lucide-react';
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,6 +26,7 @@ const navItems = [
   { href: '/channels', label: 'Channels', icon: Hash },
   { href: '/activity', label: 'Activity', icon: Activity },
   { href: '/insights', label: 'Insights', icon: Lightbulb },
+  { href: '/team', label: 'Team', icon: Users },
   { href: '/re/transactions', label: 'Real Estate', icon: Building2 },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
