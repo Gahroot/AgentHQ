@@ -41,7 +41,7 @@ export function webhookModel(db?: Knex) {
       const results = await knex('webhooks')
         .where('org_id', orgId)
         .where('active', true)
-        .whereRaw("events @> ?", [JSON.stringify([eventType])]);
+        .whereRaw("events::jsonb @> ?::jsonb", [JSON.stringify([eventType])]);
       return results.map((r) => ({
         ...r,
         events: JSON.parse(r.events as string),
